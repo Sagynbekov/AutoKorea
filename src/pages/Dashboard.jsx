@@ -325,20 +325,12 @@ function SalesChart() {
 // Главный компонент Dashboard
 export default function Dashboard() {
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-6 animate-fadeIn pt-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0">
         <div>
           <h1 className="text-2xl font-bold">Дашборд</h1>
           <p className="text-default-500">Добро пожаловать в AutoKorea CRM</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="bordered" size="sm">
-            Экспорт
-          </Button>
-          <Button color="primary" size="sm">
-            + Добавить авто
-          </Button>
         </div>
       </div>
 

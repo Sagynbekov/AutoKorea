@@ -27,11 +27,11 @@ export default function MainLayout({ isDark, setIsDark }) {
       />
 
       <main 
-        className={`pt-16 min-h-screen transition-all duration-300
+        className={`pt-8 min-h-screen transition-all duration-300
           ${isSidebarCollapsed ? 'lg:pl-20' : 'lg:pl-[280px]'}
         `}
       >
-        <div className="p-4 md:p-6 lg:p-8">
+        <div className="px-4 md:px-6 lg:px-8">
           <Outlet />
         </div>
       </main>
