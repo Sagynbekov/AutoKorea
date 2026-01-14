@@ -1,0 +1,406 @@
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Button,
+  Chip,
+  Divider,
+  Image,
+  Tab,
+  Tabs,
+  Progress,
+  Avatar,
+} from '@heroui/react';
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Car,
+  Calendar,
+  Gauge,
+  Fuel,
+  Settings,
+  DollarSign,
+  Ship,
+  FileText,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Clock,
+  CheckCircle,
+  Package,
+  Printer,
+  Share2,
+} from 'lucide-react';
+import {
+  cars,
+  clients,
+  getStatusInfo,
+  formatCurrency,
+  formatDate,
+  calculateProfit,
+  calculateTotalCost,
+} from '../data/mockData';
+
+// Компонент карточки характеристики
+function SpecCard({ icon: Icon, label, value, color = 'default' }) {
+  return (
+    <div className="flex items-center gap-3 p-3 bg-default-50 rounded-lg">
+      <div className={`p-2 rounded-lg bg-${color}/10`}>
+        <Icon size={18} className={`text-${color}`} />
+      </div>
+      <div>
+        <p className="text-xs text-default-500">{label}</p>
+        <p className="font-medium">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// Компонент прогресса статуса
+function StatusProgress({ currentStatus }) {
+  const statusOrder = [
+    { key: 'ordered', label: 'Заказан' },
+    { key: 'auction', label: 'Аукцион' },
+    { key: 'purchased', label: 'Выкуплен' },
+    { key: 'in_transit_korea', label: 'В пути (Корея)' },
+    { key: 'at_port', label: 'В порту' },
+    { key: 'shipping', label: 'На корабле' },
+    { key: 'customs', label: 'Растаможка' },
+    { key: 'in_stock', label: 'На складе' },
+    { key: 'reserved', label: 'Забронирован' },
+    { key: 'sold', label: 'Продан' },
+  ];
+
+  const currentIndex = statusOrder.findIndex(s => s.key === currentStatus);
+  const progress = ((currentIndex + 1) / statusOrder.length) * 100;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between text-sm">
+        <span className="text-default-500">Прогресс</span>
+        <span className="font-medium">{Math.round(progress)}%</span>
+      </div>
+      <Progress value={progress} color="primary" size="md" />
+      <div className="flex flex-wrap gap-2">
+        {statusOrder.map((status, index) => {
+          const isCompleted = index <= currentIndex;
+          const isCurrent = index === currentIndex;
+          return (
+            <Chip
+              key={status.key}
+              size="sm"
+              variant={isCurrent ? 'solid' : isCompleted ? 'flat' : 'bordered'}
+              color={isCurrent ? 'primary' : isCompleted ? 'success' : 'default'}
+            >
+              {status.label}
+            </Chip>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Компонент финансовой карточки
+function FinanceCard({ car }) {
+  const totalCost = calculateTotalCost(car);
+  const profit = calculateProfit(car);
+  const margin = ((profit / totalCost) * 100).toFixed(1);
+
+  const expenses = [
+    { label: 'Закупка авто', amount: car.purchasePrice, percentage: (car.purchasePrice / totalCost * 100).toFixed(0) },
+    { label: 'Доставка', amount: car.shippingCost, percentage: (car.shippingCost / totalCost * 100).toFixed(0) },
+    { label: 'Растаможка', amount: car.customsCost, percentage: (car.customsCost / totalCost * 100).toFixed(0) },
+    { label: 'Ремонт', amount: car.repairCost, percentage: (car.repairCost / totalCost * 100).toFixed(0) },
+    { label: 'Прочее', amount: car.additionalCost, percentage: (car.additionalCost / totalCost * 100).toFixed(0) },
+  ];
+
+  return (
+    <Card className="border border-default-200">
+      <CardHeader className="pb-0">
+        <h3 className="text-lg font-semibold">Финансы</h3>
+      </CardHeader>
+      <CardBody className="space-y-4">
+        {/* Main stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 bg-default-50 rounded-lg">
+            <p className="text-sm text-default-500 mb-1">Себестоимость</p>
+            <p className="text-xl font-bold">{formatCurrency(totalCost)}</p>
+          </div>
+          <div className="p-4 bg-primary/10 rounded-lg">
+            <p className="text-sm text-default-500 mb-1">Цена продажи</p>
+            <p className="text-xl font-bold text-primary">{formatCurrency(car.sellingPrice)}</p>
+          </div>
+        </div>
+
+        {/* Profit */}
+        <div className={`p-4 rounded-lg ${profit > 0 ? 'bg-success/10' : 'bg-danger/10'}`}>
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="text-sm text-default-500 mb-1">Прибыль</p>
+              <p className={`text-2xl font-bold ${profit > 0 ? 'text-success' : 'text-danger'}`}>
+                {formatCurrency(profit)}
+              </p>
+            </div>
+            <Chip color={profit > 0 ? 'success' : 'danger'} size="lg">
+              {margin}%
+            </Chip>
+          </div>
+        </div>
+
+        <Divider />
+
+        {/* Expense breakdown */}
+        <div className="space-y-3">
+          <p className="font-medium text-sm">Структура расходов</p>
+          {expenses.map((expense) => (
+            expense.amount > 0 && (
+              <div key={expense.label} className="flex items-center justify-between">
+                <span className="text-sm text-default-600">{expense.label}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium">{formatCurrency(expense.amount)}</span>
+                  <span className="text-xs text-default-400 w-10 text-right">{expense.percentage}%</span>
+                </div>
+              </div>
+            )
+          ))}
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
+// Главный компонент
+export default function CarDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  const car = cars.find(c => c.id === parseInt(id));
+  
+  if (!car) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <Car size={48} className="text-default-300" />
+        <h2 className="text-xl font-semibold">Автомобиль не найден</h2>
+        <Button as={Link} to="/cars" color="primary">
+          Вернуться к списку
+        </Button>
+      </div>
+    );
+  }
+
+  const statusInfo = getStatusInfo(car.status);
+  const client = car.client ? clients.find(c => c.name === car.client) : null;
+
+  return (
+    <div className="space-y-6 animate-fadeIn">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            isIconOnly
+            variant="light"
+            onPress={() => navigate(-1)}
+          >
+            <ArrowLeft size={20} />
+          </Button>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold">{car.brand} {car.model}</h1>
+              <Chip color={statusInfo.color} variant="flat">
+                {statusInfo.label}
+              </Chip>
+            </div>
+            <p className="text-default-500 font-mono text-sm mt-1">{car.vin}</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="bordered" startContent={<Printer size={16} />}>
+            Печать
+          </Button>
+          <Button variant="bordered" startContent={<Share2 size={16} />}>
+            Поделиться
+          </Button>
+          <Button color="primary" startContent={<Edit size={16} />}>
+            Редактировать
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column - Main info */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Car Images */}
+          <Card className="border border-default-200">
+            <CardBody className="p-0">
+              <div className="aspect-video bg-default-100 rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <Car size={80} className="text-default-300 mx-auto mb-4" />
+                  <p className="text-default-400">Фото автомобиля</p>
+                  <p className="text-sm text-default-300">Здесь будут фотографии</p>
+                </div>
+              </div>
+              <div className="p-4 flex gap-2 overflow-x-auto">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="w-20 h-16 bg-default-100 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer hover:bg-default-200 transition-colors"
+                  >
+                    <Car size={24} className="text-default-300" />
+                  </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Specifications */}
+          <Card className="border border-default-200">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">Характеристики</h3>
+            </CardHeader>
+            <CardBody>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <SpecCard icon={Calendar} label="Год выпуска" value={car.year} color="primary" />
+                <SpecCard icon={Gauge} label="Пробег" value={`${car.mileage.toLocaleString()} км`} color="warning" />
+                <SpecCard icon={Fuel} label="Двигатель" value={`${car.engineVolume} ${car.engineType}`} color="success" />
+                <SpecCard icon={Settings} label="КПП" value={car.transmission} color="secondary" />
+                <SpecCard icon={Car} label="Привод" value={car.drive} color="primary" />
+                <SpecCard icon={Package} label="Цвет" value={car.color} color="default" />
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Status Progress */}
+          <Card className="border border-default-200">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">Статус доставки</h3>
+            </CardHeader>
+            <CardBody>
+              <StatusProgress currentStatus={car.status} />
+            </CardBody>
+          </Card>
+
+          {/* Description */}
+          <Card className="border border-default-200">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">Описание</h3>
+            </CardHeader>
+            <CardBody>
+              <p className="text-default-600">{car.description}</p>
+              
+              <Divider className="my-4" />
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-default-500 mb-1">Дата покупки</p>
+                  <p className="font-medium">{formatDate(car.purchaseDate)}</p>
+                </div>
+                <div>
+                  <p className="text-default-500 mb-1">Дата прибытия</p>
+                  <p className="font-medium">{formatDate(car.arrivalDate)}</p>
+                </div>
+                <div>
+                  <p className="text-default-500 mb-1">Менеджер</p>
+                  <p className="font-medium">{car.manager}</p>
+                </div>
+                <div>
+                  <p className="text-default-500 mb-1">Цена в вонах</p>
+                  <p className="font-medium">₩{car.purchasePriceKRW?.toLocaleString()}</p>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+
+        {/* Right column - Finance & Client */}
+        <div className="space-y-6">
+          {/* Finance */}
+          <FinanceCard car={car} />
+
+          {/* Client Info */}
+          {client ? (
+            <Card className="border border-default-200">
+              <CardHeader>
+                <h3 className="text-lg font-semibold">Клиент</h3>
+              </CardHeader>
+              <CardBody className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar
+                    name={client.name}
+                    size="lg"
+                    className="bg-primary text-white"
+                  />
+                  <div>
+                    <p className="font-semibold">{client.name}</p>
+                    <p className="text-sm text-default-500">{client.city}</p>
+                  </div>
+                </div>
+                
+                <Divider />
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Phone size={16} className="text-default-400" />
+                    <span className="text-sm">{client.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail size={16} className="text-default-400" />
+                    <span className="text-sm">{client.email}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin size={16} className="text-default-400" />
+                    <span className="text-sm">{client.city}</span>
+                  </div>
+                </div>
+                
+                <Button 
+                  as={Link} 
+                  to={`/clients/${client.id}`}
+                  variant="flat" 
+                  color="primary" 
+                  fullWidth
+                >
+                  Профиль клиента
+                </Button>
+              </CardBody>
+            </Card>
+          ) : (
+            <Card className="border border-default-200">
+              <CardBody className="text-center py-8">
+                <User size={40} className="text-default-300 mx-auto mb-3" />
+                <p className="text-default-500 mb-3">Клиент не назначен</p>
+                <Button color="primary" variant="flat">
+                  Назначить клиента
+                </Button>
+              </CardBody>
+            </Card>
+          )}
+
+          {/* Quick Actions */}
+          <Card className="border border-default-200">
+            <CardHeader>
+              <h3 className="text-lg font-semibold">Действия</h3>
+            </CardHeader>
+            <CardBody className="space-y-2">
+              <Button variant="flat" color="primary" fullWidth startContent={<FileText size={16} />}>
+                Создать договор
+              </Button>
+              <Button variant="flat" color="success" fullWidth startContent={<DollarSign size={16} />}>
+                Добавить оплату
+              </Button>
+              <Button variant="flat" color="warning" fullWidth startContent={<Ship size={16} />}>
+                Обновить статус
+              </Button>
+              <Button variant="flat" color="danger" fullWidth startContent={<Trash2 size={16} />}>
+                Удалить авто
+              </Button>
+            </CardBody>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

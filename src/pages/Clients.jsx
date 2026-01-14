@@ -1,0 +1,356 @@
+import { useState, useMemo } from 'react';
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Input,
+  Button,
+  Chip,
+  Avatar,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Pagination,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+} from '@heroui/react';
+import {
+  Search,
+  Plus,
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash2,
+  Phone,
+  Mail,
+  MapPin,
+  Users,
+  DollarSign,
+  ShoppingCart,
+  UserPlus,
+} from 'lucide-react';
+import { clients, formatCurrency, formatDate } from '../data/mockData';
+
+// Карточки статистики
+function StatsCards() {
+  const totalClients = clients.length;
+  const activeClients = clients.filter(c => c.status === 'active').length;
+  const newClients = clients.filter(c => c.status === 'new').length;
+  const totalRevenue = clients.reduce((acc, c) => acc + c.totalSpent, 0);
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <Card className="border border-default-200">
+        <CardBody className="flex flex-row items-center gap-4">
+          <div className="p-3 rounded-xl bg-primary/10">
+            <Users size={24} className="text-primary" />
+          </div>
+          <div>
+            <p className="text-sm text-default-500">Всего клиентов</p>
+            <p className="text-2xl font-bold">{totalClients}</p>
+          </div>
+        </CardBody>
+      </Card>
+      
+      <Card className="border border-default-200">
+        <CardBody className="flex flex-row items-center gap-4">
+          <div className="p-3 rounded-xl bg-success/10">
+            <Users size={24} className="text-success" />
+          </div>
+          <div>
+            <p className="text-sm text-default-500">Активных</p>
+            <p className="text-2xl font-bold">{activeClients}</p>
+          </div>
+        </CardBody>
+      </Card>
+      
+      <Card className="border border-default-200">
+        <CardBody className="flex flex-row items-center gap-4">
+          <div className="p-3 rounded-xl bg-warning/10">
+            <UserPlus size={24} className="text-warning" />
+          </div>
+          <div>
+            <p className="text-sm text-default-500">Новых</p>
+            <p className="text-2xl font-bold">{newClients}</p>
+          </div>
+        </CardBody>
+      </Card>
+      
+      <Card className="border border-default-200">
+        <CardBody className="flex flex-row items-center gap-4">
+          <div className="p-3 rounded-xl bg-secondary/10">
+            <DollarSign size={24} className="text-secondary" />
+          </div>
+          <div>
+            <p className="text-sm text-default-500">Общий оборот</p>
+            <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
+          </div>
+        </CardBody>
+      </Card>
+    </div>
+  );
+}
+
+export default function Clients() {
+  const [filterValue, setFilterValue] = useState('');
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedClient, setSelectedClient] = useState(null);
+
+  const filteredClients = useMemo(() => {
+    if (!filterValue) return clients;
+    const search = filterValue.toLowerCase();
+    return clients.filter(
+      (client) =>
+        client.name.toLowerCase().includes(search) ||
+        client.phone.includes(search) ||
+        client.email.toLowerCase().includes(search) ||
+        client.city.toLowerCase().includes(search)
+    );
+  }, [filterValue]);
+
+  const pages = Math.ceil(filteredClients.length / rowsPerPage);
+  const paginatedClients = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return filteredClients.slice(start, start + rowsPerPage);
+  }, [filteredClients, page]);
+
+  const handleView = (client) => {
+    setSelectedClient(client);
+    onOpen();
+  };
+
+  const columns = [
+    { key: 'client', label: 'Клиент' },
+    { key: 'contact', label: 'Контакты' },
+    { key: 'city', label: 'Город' },
+    { key: 'orders', label: 'Заказы' },
+    { key: 'spent', label: 'Оборот' },
+    { key: 'status', label: 'Статус' },
+    { key: 'actions', label: '' },
+  ];
+
+  const renderCell = (client, columnKey) => {
+    switch (columnKey) {
+      case 'client':
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar
+              name={client.name}
+              size="sm"
+              className="bg-primary text-white"
+            />
+            <div>
+              <p className="font-medium">{client.name}</p>
+              <p className="text-xs text-default-400">С {formatDate(client.registeredDate)}</p>
+            </div>
+          </div>
+        );
+      case 'contact':
+        return (
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-sm">
+              <Phone size={14} className="text-default-400" />
+              <span>{client.phone}</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-default-500">
+              <Mail size={14} className="text-default-400" />
+              <span>{client.email}</span>
+            </div>
+          </div>
+        );
+      case 'city':
+        return (
+          <div className="flex items-center gap-2">
+            <MapPin size={14} className="text-default-400" />
+            <span>{client.city}</span>
+          </div>
+        );
+      case 'orders':
+        return (
+          <div className="flex items-center gap-2">
+            <ShoppingCart size={14} className="text-default-400" />
+            <span>{client.totalOrders}</span>
+          </div>
+        );
+      case 'spent':
+        return (
+          <p className="font-semibold text-success">{formatCurrency(client.totalSpent)}</p>
+        );
+      case 'status':
+        return (
+          <Chip
+            size="sm"
+            color={client.status === 'active' ? 'success' : 'warning'}
+            variant="flat"
+          >
+            {client.status === 'active' ? 'Активный' : 'Новый'}
+          </Chip>
+        );
+      case 'actions':
+        return (
+          <Dropdown placement="bottom-end">
+            <DropdownTrigger>
+              <Button isIconOnly variant="light" size="sm">
+                <MoreVertical size={16} />
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Действия">
+              <DropdownItem
+                key="view"
+                startContent={<Eye size={16} />}
+                onPress={() => handleView(client)}
+              >
+                Просмотр
+              </DropdownItem>
+              <DropdownItem key="edit" startContent={<Edit size={16} />}>
+                Редактировать
+              </DropdownItem>
+              <DropdownItem key="delete" color="danger" startContent={<Trash2 size={16} />}>
+                Удалить
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fadeIn">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Клиенты</h1>
+          <p className="text-default-500">Управление базой клиентов</p>
+        </div>
+        <Button color="primary" startContent={<Plus size={16} />}>
+          Добавить клиента
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <StatsCards />
+
+      {/* Filters */}
+      <div className="flex gap-4">
+        <Input
+          className="max-w-xs"
+          placeholder="Поиск по имени, телефону, email..."
+          startContent={<Search size={18} className="text-default-400" />}
+          value={filterValue}
+          onValueChange={setFilterValue}
+          isClearable
+          onClear={() => setFilterValue('')}
+        />
+      </div>
+
+      {/* Table */}
+      <Table
+        aria-label="Таблица клиентов"
+        bottomContent={
+          pages > 1 && (
+            <div className="flex justify-center py-2">
+              <Pagination
+                total={pages}
+                page={page}
+                onChange={setPage}
+                showControls
+                size="sm"
+              />
+            </div>
+          )
+        }
+        classNames={{
+          wrapper: 'shadow-none border border-default-200',
+          th: 'bg-default-100',
+        }}
+      >
+        <TableHeader columns={columns}>
+          {(column) => (
+            <TableColumn key={column.key}>{column.label}</TableColumn>
+          )}
+        </TableHeader>
+        <TableBody items={paginatedClients} emptyContent="Клиенты не найдены">
+          {(client) => (
+            <TableRow key={client.id}>
+              {(columnKey) => (
+                <TableCell>{renderCell(client, columnKey)}</TableCell>
+              )}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      {/* Client Detail Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+        <ModalContent>
+          {selectedClient && (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <Avatar
+                    name={selectedClient.name}
+                    size="lg"
+                    className="bg-primary text-white"
+                  />
+                  <div>
+                    <h3 className="text-lg font-semibold">{selectedClient.name}</h3>
+                    <p className="text-sm text-default-500">{selectedClient.city}</p>
+                  </div>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-default-50 rounded-lg">
+                    <p className="text-sm text-default-500 mb-1">Телефон</p>
+                    <p className="font-medium">{selectedClient.phone}</p>
+                  </div>
+                  <div className="p-4 bg-default-50 rounded-lg">
+                    <p className="text-sm text-default-500 mb-1">Email</p>
+                    <p className="font-medium">{selectedClient.email}</p>
+                  </div>
+                  <div className="p-4 bg-default-50 rounded-lg">
+                    <p className="text-sm text-default-500 mb-1">Заказов</p>
+                    <p className="font-medium">{selectedClient.totalOrders}</p>
+                  </div>
+                  <div className="p-4 bg-success/10 rounded-lg">
+                    <p className="text-sm text-default-500 mb-1">Общий оборот</p>
+                    <p className="font-semibold text-success">{formatCurrency(selectedClient.totalSpent)}</p>
+                  </div>
+                </div>
+                {selectedClient.notes && (
+                  <div className="mt-4 p-4 bg-default-50 rounded-lg">
+                    <p className="text-sm text-default-500 mb-1">Заметки</p>
+                    <p>{selectedClient.notes}</p>
+                  </div>
+                )}
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={onClose}>
+                  Закрыть
+                </Button>
+                <Button color="primary">
+                  Редактировать
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
+  );
+}
