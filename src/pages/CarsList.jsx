@@ -42,6 +42,7 @@ import {
     formatCurrency,
     getStatusInfo
 } from '../data/mockData';
+import AddModal from '../components/AddModal';
 
 const columns = [
   { key: 'car', label: 'Автомобиль', sortable: true },
@@ -74,7 +75,8 @@ export default function CarsList() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortDescriptor, setSortDescriptor] = useState({ column: 'car', direction: 'ascending' });
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
   const [selectedCar, setSelectedCar] = useState(null);
 
   // Фильтрация данных
@@ -156,13 +158,19 @@ export default function CarsList() {
 
   const handleDelete = (car) => {
     setSelectedCar(car);
-    onOpen();
+    onDeleteOpen();
   };
 
   const confirmDelete = () => {
     // В реальном приложении здесь будет удаление
     console.log('Удаление автомобиля:', selectedCar?.id);
-    onClose();
+    onDeleteClose();
+  };
+
+  const handleAddCar = (formData) => {
+    console.log('Добавление автомобиля:', formData);
+    // В реальном приложении здесь будет API запрос
+    return Promise.resolve();
   };
 
   const renderCell = (car, columnKey) => {
@@ -253,7 +261,7 @@ export default function CarsList() {
           <Button variant="bordered" startContent={<Download size={16} />}>
             Экспорт
           </Button>
-          <Button color="primary" startContent={<Plus size={16} />}>
+          <Button color="primary" startContent={<Plus size={16} />} onPress={onAddOpen}>
             Добавить авто
           </Button>
         </div>
@@ -371,8 +379,16 @@ export default function CarsList() {
         </TableBody>
       </Table>
 
+      {/* Add Car Modal */}
+      <AddModal
+        isOpen={isAddOpen}
+        onClose={onAddClose}
+        type="car"
+        onSubmit={handleAddCar}
+      />
+
       {/* Delete Confirmation Modal */}
-      <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose}>
         <ModalContent>
           <ModalHeader>Подтверждение удаления</ModalHeader>
           <ModalBody>
@@ -385,7 +401,7 @@ export default function CarsList() {
             </p>
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onPress={onClose}>
+            <Button variant="light" onPress={onDeleteClose}>
               Отмена
             </Button>
             <Button color="danger" onPress={confirmDelete}>

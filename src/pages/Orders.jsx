@@ -21,6 +21,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  useDisclosure,
 } from '@heroui/react';
 import {
   Package,
@@ -36,6 +37,7 @@ import {
   Car,
 } from 'lucide-react';
 import { cars, clients, getStatusInfo, formatCurrency, formatDate } from '../data/mockData';
+import AddModal from '../components/AddModal';
 
 // Фильтруем только заказанные авто (не на складе и не проданные)
 const orderStatuses = ['ordered', 'auction', 'purchased', 'in_transit_korea', 'at_port', 'shipping', 'customs'];
@@ -43,6 +45,7 @@ const orderStatuses = ['ordered', 'auction', 'purchased', 'in_transit_korea', 'a
 export default function Orders() {
   const [filterValue, setFilterValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const orders = useMemo(() => {
     return cars.filter(car => orderStatuses.includes(car.status) || car.status === 'reserved');
@@ -99,6 +102,12 @@ export default function Orders() {
       reserved: 95,
     };
     return statusProgress[status] || 0;
+  };
+
+  const handleAddOrder = (formData) => {
+    console.log('Создание заказа:', formData);
+    // В реальном приложении здесь будет API запрос
+    return Promise.resolve();
   };
 
   const renderCell = (order, columnKey) => {
@@ -183,7 +192,7 @@ export default function Orders() {
           <h1 className="text-2xl font-bold">Заказы</h1>
           <p className="text-default-500">Отслеживание заказов и доставки</p>
         </div>
-        <Button color="primary" startContent={<Plus size={16} />}>
+        <Button color="primary" startContent={<Plus size={16} />} onPress={onOpen}>
           Новый заказ
         </Button>
       </div>
@@ -285,6 +294,14 @@ export default function Orders() {
           )}
         </TableBody>
       </Table>
+
+      {/* Add Order Modal */}
+      <AddModal
+        isOpen={isOpen}
+        onClose={onClose}
+        type="order"
+        onSubmit={handleAddOrder}
+      />
     </div>
   );
 }

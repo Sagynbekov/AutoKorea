@@ -41,6 +41,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { clients, formatCurrency, formatDate } from '../data/mockData';
+import AddModal from '../components/AddModal';
 
 // Карточки статистики
 function StatsCards() {
@@ -106,7 +107,8 @@ export default function Clients() {
   const [filterValue, setFilterValue] = useState('');
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
+  const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
   const [selectedClient, setSelectedClient] = useState(null);
 
   const filteredClients = useMemo(() => {
@@ -129,7 +131,13 @@ export default function Clients() {
 
   const handleView = (client) => {
     setSelectedClient(client);
-    onOpen();
+    onViewOpen();
+  };
+
+  const handleAddClient = (formData) => {
+    console.log('Добавление клиента:', formData);
+    // В реальном приложении здесь будет API запрос
+    return Promise.resolve();
   };
 
   const columns = [
@@ -237,7 +245,7 @@ export default function Clients() {
           <h1 className="text-2xl font-bold">Клиенты</h1>
           <p className="text-default-500">Управление базой клиентов</p>
         </div>
-        <Button color="primary" startContent={<Plus size={16} />}>
+        <Button color="primary" startContent={<Plus size={16} />} onPress={onAddOpen}>
           Добавить клиента
         </Button>
       </div>
@@ -295,8 +303,16 @@ export default function Clients() {
         </TableBody>
       </Table>
 
+      {/* Add Client Modal */}
+      <AddModal
+        isOpen={isAddOpen}
+        onClose={onAddClose}
+        type="client"
+        onSubmit={handleAddClient}
+      />
+
       {/* Client Detail Modal */}
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+      <Modal isOpen={isViewOpen} onClose={onViewClose} size="lg">
         <ModalContent>
           {selectedClient && (
             <>
@@ -340,7 +356,7 @@ export default function Clients() {
                 )}
               </ModalBody>
               <ModalFooter>
-                <Button variant="light" onPress={onClose}>
+                <Button variant="light" onPress={onViewClose}>
                   Закрыть
                 </Button>
                 <Button color="primary">
