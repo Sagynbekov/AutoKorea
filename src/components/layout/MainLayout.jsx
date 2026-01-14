@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import TopNavbar from './TopNavbar';
-import Sidebar from './Sidebar';
 import MobileMenu from './MobileMenu';
+import Sidebar from './Sidebar';
+import TopNavbar from './TopNavbar';
 
 export default function MainLayout({ isDark, setIsDark }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
