@@ -58,18 +58,6 @@ export default function Sidebar({ isCollapsed, onToggle }) {
         transition-all duration-300 ease-in-out hidden lg:block`}
     >
       <div className="flex flex-col h-full">
-        {/* Toggle Button */}
-        <div className="flex justify-end p-2 border-b border-default-200">
-          <Button
-            isIconOnly
-            size="sm"
-            variant="light"
-            onPress={onToggle}
-            className="text-default-500"
-          >
-            {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          </Button>
-        </div>
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-3">
