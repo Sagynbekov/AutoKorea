@@ -40,7 +40,7 @@ import { cars, clients, getStatusInfo, formatCurrency, formatDate } from '../dat
 import AddModal from '../components/AddModal';
 
 // Фильтруем только заказанные авто (не на складе и не проданные)
-const orderStatuses = ['ordered', 'auction', 'purchased', 'in_transit_korea', 'at_port', 'shipping', 'customs'];
+const orderStatuses = ['in_korea', 'at_port', 'shipping', 'customs'];
 
 export default function Orders() {
   const [filterValue, setFilterValue] = useState('');
@@ -48,7 +48,7 @@ export default function Orders() {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const orders = useMemo(() => {
-    return cars.filter(car => orderStatuses.includes(car.status) || car.status === 'reserved');
+    return cars.filter(car => orderStatuses.includes(car.status));
   }, []);
 
   const filteredOrders = useMemo(() => {
@@ -75,14 +75,14 @@ export default function Orders() {
   // Статистика
   const stats = {
     total: orders.length,
-    inTransit: orders.filter(o => ['in_transit_korea', 'shipping', 'at_port'].includes(o.status)).length,
+    inTransit: orders.filter(o => ['shipping', 'at_port'].includes(o.status)).length,
     customs: orders.filter(o => o.status === 'customs').length,
-    auction: orders.filter(o => ['ordered', 'auction', 'purchased'].includes(o.status)).length,
+    inKorea: orders.filter(o => o.status === 'in_korea').length,
   };
 
   const columns = [
     { key: 'car', label: 'Автомобиль' },
-    { key: 'client', label: 'Клиент' },
+    { key: 'employee', label: 'Сотрудник' },
     { key: 'status', label: 'Статус' },
     { key: 'progress', label: 'Прогресс' },
     { key: 'price', label: 'Стоимость' },
@@ -92,14 +92,10 @@ export default function Orders() {
 
   const getProgressPercent = (status) => {
     const statusProgress = {
-      ordered: 10,
-      auction: 20,
-      purchased: 30,
-      in_transit_korea: 45,
-      at_port: 55,
-      shipping: 70,
-      customs: 85,
-      reserved: 95,
+      in_korea: 25,
+      at_port: 50,
+      shipping: 75,
+      customs: 90,
     };
     return statusProgress[status] || 0;
   };
@@ -126,11 +122,11 @@ export default function Orders() {
             </div>
           </div>
         );
-      case 'client':
-        return order.client ? (
+      case 'employee':
+        return order.manager ? (
           <div className="flex items-center gap-2">
-            <Avatar name={order.client} size="sm" className="bg-primary" />
-            <span className="text-sm">{order.client}</span>
+            <Avatar name={order.manager} size="sm" className="bg-primary" />
+            <span className="text-sm">{order.manager}</span>
           </div>
         ) : (
           <span className="text-default-400 text-sm">Не назначен</span>
@@ -238,8 +234,8 @@ export default function Orders() {
               <AlertCircle size={20} className="text-success" />
             </div>
             <div>
-              <p className="text-xs text-default-500">На аукционе</p>
-              <p className="text-xl font-bold">{stats.auction}</p>
+              <p className="text-xs text-default-500">В Корее</p>
+              <p className="text-xl font-bold">{stats.inKorea}</p>
             </div>
           </CardBody>
         </Card>
@@ -262,10 +258,8 @@ export default function Orders() {
           onChange={(e) => setStatusFilter(e.target.value)}
         >
           <SelectItem key="all">Все статусы</SelectItem>
-          <SelectItem key="ordered">Заказан</SelectItem>
-          <SelectItem key="auction">На аукционе</SelectItem>
-          <SelectItem key="purchased">Выкуплен</SelectItem>
-          <SelectItem key="in_transit_korea">В пути (Корея)</SelectItem>
+          <SelectItem key="in_korea">В Корее</SelectItem>
+          <SelectItem key="at_port">В порту</SelectItem>
           <SelectItem key="shipping">На корабле</SelectItem>
           <SelectItem key="customs">Растаможка</SelectItem>
         </Select>

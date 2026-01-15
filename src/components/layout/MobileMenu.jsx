@@ -16,9 +16,9 @@ import { Button } from '@heroui/react';
 
 const menuItems = [
   { path: '/', icon: LayoutDashboard, label: 'Дашборд' },
-  { path: '/cars', icon: Car, label: 'Автомобили' },
   { path: '/orders', icon: Package, label: 'Заказы' },
-  { path: '/clients', icon: Users, label: 'Клиенты' },
+  { path: '/cars', icon: Car, label: 'Автомобили' },
+  { path: '/clients', icon: Users, label: 'Сотрудники' },
   { path: '/finance', icon: Wallet, label: 'Финансы' },
   { path: '/calculator', icon: Calculator, label: 'Калькулятор' },
   { path: '/reports', icon: FileText, label: 'Отчеты' },

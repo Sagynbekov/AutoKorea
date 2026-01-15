@@ -62,15 +62,11 @@ function SpecCard({ icon: Icon, label, value, color = 'default' }) {
 // Компонент прогресса статуса
 function StatusProgress({ currentStatus }) {
   const statusOrder = [
-    { key: 'ordered', label: 'Заказан' },
-    { key: 'auction', label: 'Аукцион' },
-    { key: 'purchased', label: 'Выкуплен' },
-    { key: 'in_transit_korea', label: 'В пути (Корея)' },
+    { key: 'in_korea', label: 'В Корее' },
     { key: 'at_port', label: 'В порту' },
     { key: 'shipping', label: 'На корабле' },
     { key: 'customs', label: 'Растаможка' },
     { key: 'in_stock', label: 'На складе' },
-    { key: 'reserved', label: 'Забронирован' },
     { key: 'sold', label: 'Продан' },
   ];
 

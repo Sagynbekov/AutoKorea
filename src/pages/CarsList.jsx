@@ -29,7 +29,6 @@ import {
     Eye,
     Filter,
     MoreVertical,
-    Plus,
     Search,
     Trash2
 } from 'lucide-react';
@@ -38,27 +37,18 @@ import { Link } from 'react-router-dom';
 import {
     calculateProfit,
     cars,
-    carStatuses,
-    formatCurrency,
-    getStatusInfo
+    formatCurrency
 } from '../data/mockData';
-import AddModal from '../components/AddModal';
 
 const columns = [
   { key: 'car', label: 'Автомобиль', sortable: true },
   { key: 'vin', label: 'VIN', sortable: true },
   { key: 'year', label: 'Год', sortable: true },
   { key: 'mileage', label: 'Пробег', sortable: true },
-  { key: 'status', label: 'Статус', sortable: true },
   { key: 'purchasePrice', label: 'Закупка', sortable: true },
   { key: 'sellingPrice', label: 'Продажа', sortable: true },
   { key: 'profit', label: 'Прибыль', sortable: true },
   { key: 'actions', label: '', sortable: false },
-];
-
-const statusOptions = [
-  { key: 'all', label: 'Все статусы' },
-  ...Object.values(carStatuses).map(s => ({ key: s.key, label: s.label })),
 ];
 
 const brandOptions = [
@@ -70,18 +60,17 @@ const brandOptions = [
 
 export default function CarsList() {
   const [filterValue, setFilterValue] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
   const [brandFilter, setBrandFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortDescriptor, setSortDescriptor] = useState({ column: 'car', direction: 'ascending' });
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
-  const { isOpen: isAddOpen, onOpen: onAddOpen, onClose: onAddClose } = useDisclosure();
   const [selectedCar, setSelectedCar] = useState(null);
 
   // Фильтрация данных
   const filteredCars = useMemo(() => {
-    let filtered = [...cars];
+    // Показываем только авто на складе
+    let filtered = cars.filter(car => car.status === 'in_stock');
 
     // Поиск по тексту
     if (filterValue) {
@@ -95,18 +84,13 @@ export default function CarsList() {
       );
     }
 
-    // Фильтр по статусу
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((car) => car.status === statusFilter);
-    }
-
     // Фильтр по марке
     if (brandFilter !== 'all') {
       filtered = filtered.filter((car) => car.brand === brandFilter);
     }
 
     return filtered;
-  }, [filterValue, statusFilter, brandFilter]);
+  }, [filterValue, brandFilter]);
 
   // Сортировка
   const sortedCars = useMemo(() => {
@@ -125,9 +109,6 @@ export default function CarsList() {
           break;
         case 'mileage':
           cmp = a.mileage - b.mileage;
-          break;
-        case 'status':
-          cmp = a.status.localeCompare(b.status);
           break;
         case 'purchasePrice':
           cmp = a.purchasePrice - b.purchasePrice;
@@ -167,12 +148,6 @@ export default function CarsList() {
     onDeleteClose();
   };
 
-  const handleAddCar = (formData) => {
-    console.log('Добавление автомобиля:', formData);
-    // В реальном приложении здесь будет API запрос
-    return Promise.resolve();
-  };
-
   const renderCell = (car, columnKey) => {
     switch (columnKey) {
       case 'car':
@@ -195,13 +170,6 @@ export default function CarsList() {
         return <p>{car.year}</p>;
       case 'mileage':
         return <p>{car.mileage.toLocaleString()} км</p>;
-      case 'status':
-        const statusInfo = getStatusInfo(car.status);
-        return (
-          <Chip size="sm" color={statusInfo.color} variant="flat">
-            {statusInfo.label}
-          </Chip>
-        );
       case 'purchasePrice':
         return <p className="font-medium">{formatCurrency(car.purchasePrice)}</p>;
       case 'sellingPrice':
@@ -261,9 +229,6 @@ export default function CarsList() {
           <Button variant="bordered" startContent={<Download size={16} />}>
             Экспорт
           </Button>
-          <Button color="primary" startContent={<Plus size={16} />} onPress={onAddOpen}>
-            Добавить авто
-          </Button>
         </div>
       </div>
 
@@ -278,18 +243,6 @@ export default function CarsList() {
           isClearable
           onClear={() => setFilterValue('')}
         />
-        
-        <Select
-          className="w-full sm:w-48"
-          placeholder="Статус"
-          selectedKeys={[statusFilter]}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          startContent={<Filter size={16} className="text-default-400" />}
-        >
-          {statusOptions.map((status) => (
-            <SelectItem key={status.key}>{status.label}</SelectItem>
-          ))}
-        </Select>
 
         <Select
           className="w-full sm:w-48"
@@ -379,17 +332,17 @@ export default function CarsList() {
         </TableBody>
       </Table>
 
-      {/* Add Car Modal */}
-      <AddModal
-        isOpen={isAddOpen}
-        onClose={onAddClose}
-        type="car"
-        onSubmit={handleAddCar}
-      />
-
       {/* Delete Confirmation Modal */}
-      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose}>
-        <ModalContent>
+      <Modal 
+        isOpen={isDeleteOpen} 
+        onClose={onDeleteClose} 
+        classNames={{ 
+          base: "rounded-2xl",
+          wrapper: "rounded-2xl",
+          backdrop: "bg-overlay/50 backdrop-opacity-disabled"
+        }}
+      >
+        <ModalContent className="rounded-2xl">
           <ModalHeader>Подтверждение удаления</ModalHeader>
           <ModalBody>
             <p>

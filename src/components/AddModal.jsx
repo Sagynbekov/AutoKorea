@@ -67,11 +67,22 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('handleSubmit вызван. type:', type, 'currentStep:', currentStep);
+    
+    // Если это первый шаг для car/order, переходим на второй шаг вместо отправки
+    if ((type === 'car' || type === 'order') && currentStep === 1) {
+      console.log('Переход на шаг 2');
+      setCurrentStep(2);
+      return;
+    }
+    
+    console.log('Отправка формы');
     setIsLoading(true);
     
     try {
       await onSubmit(formData);
       setFormData({});
+      setCurrentStep(1); // Сбрасываем шаг при успешной отправке
       onClose();
     } catch (error) {
       console.error('Ошибка при сохранении:', error);
@@ -318,29 +329,176 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
           title: 'Создать заказ',
           fields: [
             {
-              name: 'clientPassport',
-              label: 'Клиент',
-              type: 'autocomplete',
+              name: 'brand',
+              label: 'Марка',
+              type: 'input',
               required: true,
-              placeholder: 'Введите ИНН паспорта',
+              placeholder: 'Hyundai, Kia, Genesis',
             },
             {
-              name: 'carVin',
-              label: 'Авто',
-              type: 'autocomplete-car',
+              name: 'model',
+              label: 'Модель',
+              type: 'input',
               required: true,
-              placeholder: 'Введите VIN автомобиля',
+              placeholder: 'Sonata, Sportage, G80',
             },
             {
-              name: 'deliveryType',
-              label: 'Тип доставки',
+              name: 'year',
+              label: 'Год выпуска',
+              type: 'input',
+              inputType: 'number',
+              required: true,
+              placeholder: '2024',
+            },
+            {
+              name: 'vin',
+              label: 'VIN код',
+              type: 'input',
+              required: true,
+              placeholder: 'KMHXX00XXXX000000',
+            },
+            {
+              name: 'mileage',
+              label: 'Пробег (км)',
+              type: 'input',
+              inputType: 'number',
+              required: true,
+              placeholder: '50000',
+            },
+            {
+              name: 'color',
+              label: 'Цвет',
+              type: 'color',
+              required: true,
+              placeholder: '#000000',
+            },
+            {
+              name: 'engineVolume',
+              label: 'Объем двигателя (л)',
+              type: 'input',
+              required: true,
+              placeholder: '2.5',
+            },
+            {
+              name: 'fuel',
+              label: 'Тип топлива',
               type: 'select',
               required: true,
+              placeholder: 'Выберите тип топлива',
               options: [
-                { value: 'economy', label: 'Эконом' },
-                { value: 'standard', label: 'Стандарт' },
-                { value: 'express', label: 'Экспресс' },
+                { value: 'gasoline', label: 'Бензин' },
+                { value: 'diesel', label: 'Дизель' },
+                { value: 'hybrid', label: 'Гибрид' },
+                { value: 'electric', label: 'Электро' },
               ],
+            },
+            {
+              name: 'transmission',
+              label: 'Коробка передач',
+              type: 'select',
+              required: true,
+              placeholder: 'Выберите тип коробки',
+              options: [
+                { value: 'automatic', label: 'Автомат' },
+                { value: 'manual', label: 'Механика' },
+                { value: 'robot', label: 'Робот' },
+                { value: 'cvt', label: 'Вариатор' },
+              ],
+            },
+            {
+              name: 'drive',
+              label: 'Привод',
+              type: 'select',
+              required: true,
+              placeholder: 'Выберите тип привода',
+              options: [
+                { value: 'fwd', label: 'Передний' },
+                { value: 'rwd', label: 'Задний' },
+                { value: 'awd', label: 'Полный' },
+              ],
+            },
+            {
+              name: 'steering',
+              label: 'Руль',
+              type: 'select',
+              required: true,
+              placeholder: 'Выберите расположение руля',
+              options: [
+                { value: 'left', label: 'Слева' },
+                { value: 'right', label: 'Справа' },
+              ],
+            },
+            {
+              name: 'condition',
+              label: 'Состояние',
+              type: 'select',
+              required: true,
+              placeholder: 'Выберите состояние',
+              options: [
+                { value: 'excellent', label: 'Отличное' },
+                { value: 'good', label: 'Хорошее' },
+                { value: 'average', label: 'Среднее' },
+                { value: 'damaged', label: 'Битая' },
+              ],
+            },
+            ...(formData.condition === 'damaged' ? [
+              {
+                name: 'carfax',
+                label: 'Карфакс (описание повреждений)',
+                type: 'textarea',
+                required: true,
+                placeholder: 'Опишите все повреждения автомобиля...',
+              },
+            ] : []),
+          ],
+          step2Fields: [
+            {
+              name: 'purchaseCost',
+              label: 'Закупка авто ($)',
+              type: 'input',
+              inputType: 'number',
+              required: true,
+              placeholder: '15000',
+            },
+            {
+              name: 'deliveryCost',
+              label: 'Доставка ($)',
+              type: 'input',
+              inputType: 'number',
+              required: true,
+              placeholder: '1500',
+            },
+            {
+              name: 'customsCost',
+              label: 'Растаможка ($)',
+              type: 'input',
+              inputType: 'number',
+              required: true,
+              placeholder: '2000',
+            },
+            {
+              name: 'repairCost',
+              label: 'Ремонт ($)',
+              type: 'input',
+              inputType: 'number',
+              required: true,
+              placeholder: '500',
+            },
+            {
+              name: 'otherCost',
+              label: 'Прочее ($)',
+              type: 'input',
+              inputType: 'number',
+              required: true,
+              placeholder: '300',
+            },
+            {
+              name: 'sellingPrice',
+              label: 'Цена продажи ($)',
+              type: 'input',
+              inputType: 'number',
+              required: true,
+              placeholder: '22000',
             },
           ],
         };
@@ -497,9 +655,17 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
     }
   };
 
-  const handleNext = () => {
-    if (type === 'car' && currentStep === 1) {
+  const handleNext = (e) => {
+    console.log('handleNext вызван. type:', type, 'currentStep:', currentStep);
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if ((type === 'car' || type === 'order') && currentStep === 1) {
+      console.log('Условие выполнено, переход на шаг 2');
       setCurrentStep(2);
+    } else {
+      console.log('Условие НЕ выполнено');
     }
   };
 
@@ -510,7 +676,9 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
   };
 
   // Определяем какие поля показывать
-  const fieldsToShow = type === 'car' && currentStep === 2 ? config.step2Fields : config.fields;
+  const fieldsToShow = (type === 'car' || type === 'order') && currentStep === 2 ? config.step2Fields : config.fields;
+  
+  console.log('Рендер модалки. type:', type, 'currentStep:', currentStep, 'fieldsToShow:', fieldsToShow?.length);
 
   return (
     <Modal
@@ -519,25 +687,27 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
       size="2xl"
       scrollBehavior="inside"
       classNames={{
-        base: "max-h-[90vh]",
+        base: "rounded-2xl",
+        wrapper: "rounded-2xl",
         body: "overflow-y-auto max-h-[60vh]",
+        backdrop: "bg-overlay/50 backdrop-opacity-disabled",
       }}
     >
-      <ModalContent>
+      <ModalContent className="rounded-2xl">
         {(onClose) => (
-          <form onSubmit={handleSubmit}>
+          <>
             <ModalHeader className="flex flex-col gap-1 sticky top-0 bg-content1 z-10">
               <h2 className="text-xl font-bold">
-                {type === 'car' && currentStep === 2 ? 'Себестоимость и цена' : config.title}
+                {(type === 'car' || type === 'order') && currentStep === 2 ? 'Себестоимость и цена' : config.title}
               </h2>
-              {type === 'car' && currentStep === 2 ? (
+              {(type === 'car' || type === 'order') && currentStep === 2 ? (
                 <div className="flex flex-col gap-1">
                   <p className="text-2xl font-bold text-primary">
                     Себестоимость: ${totalCost.toLocaleString()}
                   </p>
                 </div>
               ) : (
-                type === 'car' && currentStep === 1 && (
+                (type === 'car' || type === 'order') && currentStep === 1 && (
                   <p className="text-sm text-default-500 font-normal">
                     Шаг 1 из 2
                   </p>
@@ -559,8 +729,9 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
             </ModalBody>
             
             <ModalFooter className="sticky bottom-0 bg-content1 border-t border-divider z-10 gap-2">
-              {type === 'car' && currentStep === 2 && (
+              {(type === 'car' || type === 'order') && currentStep === 2 && (
                 <Button
+                  type="button"
                   variant="light"
                   onPress={handleBack}
                   isDisabled={isLoading}
@@ -569,6 +740,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
                 </Button>
               )}
               <Button
+                type="button"
                 color="danger"
                 variant="light"
                 onPress={handleClose}
@@ -576,10 +748,14 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               >
                 Отмена
               </Button>
-              {type === 'car' && currentStep === 1 ? (
+              {(type === 'car' || type === 'order') && currentStep === 1 ? (
                 <Button
                   color="primary"
-                  onPress={handleNext}
+                  type="button"
+                  onPress={() => {
+                    console.log('Кнопка "Следующий" нажата');
+                    handleNext();
+                  }}
                   isDisabled={isLoading}
                 >
                   Следующий
@@ -587,14 +763,14 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               ) : (
                 <Button
                   color="primary"
-                  type="submit"
+                  onClick={handleSubmit}
                   isLoading={isLoading}
                 >
                   Сохранить
                 </Button>
               )}
             </ModalFooter>
-          </form>
+          </>
         )}
       </ModalContent>
     </Modal>

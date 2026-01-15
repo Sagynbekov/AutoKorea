@@ -58,7 +58,7 @@ function StatsCards() {
             <Users size={24} className="text-primary" />
           </div>
           <div>
-            <p className="text-sm text-default-500">Всего клиентов</p>
+            <p className="text-sm text-default-500">Всего сотрудников</p>
             <p className="text-2xl font-bold">{totalClients}</p>
           </div>
         </CardBody>
@@ -141,7 +141,7 @@ export default function Clients() {
   };
 
   const columns = [
-    { key: 'client', label: 'Клиент' },
+    { key: 'client', label: 'Сотрудник' },
     { key: 'contact', label: 'Контакты' },
     { key: 'city', label: 'Город' },
     { key: 'orders', label: 'Заказы' },
@@ -242,11 +242,11 @@ export default function Clients() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Клиенты</h1>
-          <p className="text-default-500">Управление базой клиентов</p>
+          <h1 className="text-2xl font-bold">Сотрудники</h1>
+          <p className="text-default-500">Управление базой сотрудников</p>
         </div>
         <Button color="primary" startContent={<Plus size={16} />} onPress={onAddOpen}>
-          Добавить клиента
+          Добавить сотрудника
         </Button>
       </div>
 
@@ -268,7 +268,7 @@ export default function Clients() {
 
       {/* Table */}
       <Table
-        aria-label="Таблица клиентов"
+        aria-label="Таблица сотрудников"
         bottomContent={
           pages > 1 && (
             <div className="flex justify-center py-2">
@@ -292,7 +292,7 @@ export default function Clients() {
             <TableColumn key={column.key}>{column.label}</TableColumn>
           )}
         </TableHeader>
-        <TableBody items={paginatedClients} emptyContent="Клиенты не найдены">
+        <TableBody items={paginatedClients} emptyContent="Сотрудники не найдены">
           {(client) => (
             <TableRow key={client.id}>
               {(columnKey) => (
@@ -312,8 +312,17 @@ export default function Clients() {
       />
 
       {/* Client Detail Modal */}
-      <Modal isOpen={isViewOpen} onClose={onViewClose} size="lg">
-        <ModalContent>
+      <Modal 
+        isOpen={isViewOpen} 
+        onClose={onViewClose} 
+        size="lg" 
+        classNames={{ 
+          base: "rounded-2xl",
+          wrapper: "rounded-2xl",
+          backdrop: "bg-overlay/50 backdrop-opacity-disabled"
+        }}
+      >
+        <ModalContent className="rounded-2xl">
           {selectedClient && (
             <>
               <ModalHeader className="flex flex-col gap-1">

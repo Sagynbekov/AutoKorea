@@ -2,16 +2,12 @@
 
 // Статусы автомобилей
 export const carStatuses = {
-  ORDERED: { key: 'ordered', label: 'Заказан', color: 'warning' },
-  AUCTION: { key: 'auction', label: 'На аукционе', color: 'secondary' },
-  PURCHASED: { key: 'purchased', label: 'Выкуплен', color: 'primary' },
-  IN_TRANSIT_KOREA: { key: 'in_transit_korea', label: 'В пути (Корея)', color: 'warning' },
+  IN_KOREA: { key: 'in_korea', label: 'В Корее', color: 'warning' },
   AT_PORT: { key: 'at_port', label: 'В порту', color: 'primary' },
   SHIPPING: { key: 'shipping', label: 'На корабле', color: 'secondary' },
   CUSTOMS: { key: 'customs', label: 'Растаможка', color: 'warning' },
   IN_STOCK: { key: 'in_stock', label: 'На складе', color: 'success' },
-  RESERVED: { key: 'reserved', label: 'Забронирован', color: 'primary' },
-  SOLD: { key: 'sold', label: 'Продан', color: 'success' },
+  SOLD: { key: 'sold', label: 'Продан', color: 'default' },
 };
 
 // Автомобили
@@ -137,7 +133,7 @@ export const cars = [
     engineVolume: '2.5T',
     transmission: 'Автомат',
     drive: 'Полный',
-    status: 'reserved',
+    status: 'in_stock',
     purchasePrice: 42000,
     purchasePriceKRW: 55600000,
     shippingCost: 1500,
@@ -191,7 +187,7 @@ export const cars = [
     engineVolume: '77.4 kWh',
     transmission: 'Автомат',
     drive: 'Полный',
-    status: 'auction',
+    status: 'in_korea',
     purchasePrice: 38000,
     purchasePriceKRW: 50300000,
     shippingCost: 1600,
@@ -218,7 +214,7 @@ export const cars = [
     engineVolume: '2.2',
     transmission: 'Автомат',
     drive: 'Полный',
-    status: 'in_transit_korea',
+    status: 'in_korea',
     purchasePrice: 35000,
     purchasePriceKRW: 46300000,
     shippingCost: 1450,
@@ -300,7 +296,7 @@ export const cars = [
     engineVolume: '1.6T',
     transmission: 'Автомат',
     drive: 'Передний',
-    status: 'ordered',
+    status: 'in_korea',
     purchasePrice: 29000,
     purchasePriceKRW: 38400000,
     shippingCost: 1300,
