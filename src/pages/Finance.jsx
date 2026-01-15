@@ -18,6 +18,8 @@ import {
   SelectItem,
   Divider,
   Progress,
+  DateRangePicker,
+  ButtonGroup,
 } from '@heroui/react';
 import {
   DollarSign,
@@ -313,6 +315,17 @@ function TransactionsTable() {
 }
 
 export default function Finance() {
+  const [dateRange, setDateRange] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState('all');
+
+  const handlePeriodChange = (period) => {
+    setSelectedPeriod(period);
+    // Здесь можно добавить логику для установки соответствующего диапазона дат
+    if (period !== 'custom') {
+      setDateRange(null);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header */}
@@ -325,14 +338,74 @@ export default function Finance() {
           <Button variant="bordered" startContent={<Download size={16} />}>
             Экспорт
           </Button>
-          <Button color="primary" startContent={<Plus size={16} />}>
-            Добавить операцию
-          </Button>
         </div>
       </div>
 
+      {/* Date Filters */}
+      <Card className="border border-default-200">
+        <CardBody className="p-4">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+            <div className="flex items-center gap-2">
+              <Calendar size={20} className="text-default-500" />
+              <span className="text-sm font-medium">Период:</span>
+            </div>
+            <div className="flex-1 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <ButtonGroup size="sm" variant="flat">
+                <Button
+                  color={selectedPeriod === 'all' ? 'primary' : 'default'}
+                  onPress={() => handlePeriodChange('all')}
+                >
+                  Все время
+                </Button>
+                <Button
+                  color={selectedPeriod === 'today' ? 'primary' : 'default'}
+                  onPress={() => handlePeriodChange('today')}
+                >
+                  Сегодня
+                </Button>
+                <Button
+                  color={selectedPeriod === 'week' ? 'primary' : 'default'}
+                  onPress={() => handlePeriodChange('week')}
+                >
+                  Неделя
+                </Button>
+                <Button
+                  color={selectedPeriod === 'month' ? 'primary' : 'default'}
+                  onPress={() => handlePeriodChange('month')}
+                >
+                  Месяц
+                </Button>
+                <Button
+                  color={selectedPeriod === 'year' ? 'primary' : 'default'}
+                  onPress={() => handlePeriodChange('year')}
+                >
+                  Год
+                </Button>
+                <Button
+                  color={selectedPeriod === 'custom' ? 'primary' : 'default'}
+                  onPress={() => handlePeriodChange('custom')}
+                >
+                  Выбрать период
+                </Button>
+              </ButtonGroup>
+              {selectedPeriod === 'custom' && (
+                <DateRangePicker
+                  label="Выберите период"
+                  size="sm"
+                  variant="bordered"
+                  value={dateRange}
+                  onChange={setDateRange}
+                  className="max-w-xs"
+                  visibleMonths={2}
+                />
+              )}
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FinanceStatCard
           title="Общая выручка"
           value={formatCurrency(dashboardStats.totalRevenue)}
@@ -348,20 +421,6 @@ export default function Finance() {
           changeType="positive"
           icon={TrendingUp}
           color="primary"
-        />
-        <FinanceStatCard
-          title="Выручка за месяц"
-          value={formatCurrency(dashboardStats.monthlyRevenue)}
-          change="+5.4%"
-          changeType="positive"
-          icon={Wallet}
-          color="success"
-        />
-        <FinanceStatCard
-          title="Ожидает оплаты"
-          value={formatCurrency(dashboardStats.pendingPayments)}
-          icon={CreditCard}
-          color="warning"
         />
       </div>
 
