@@ -359,7 +359,7 @@ export default function Dashboard() {
           color="warning"
         />
         <StatCard
-          title="Клиентов"
+          title="Сотрудников"
           value={dashboardStats.totalClients}
           change="+2"
           changeType="positive"

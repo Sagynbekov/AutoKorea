@@ -320,7 +320,7 @@ export default function CarDetail() {
           {client ? (
             <Card className="border border-default-200">
               <CardHeader>
-                <h3 className="text-lg font-semibold">Клиент</h3>
+                <h3 className="text-lg font-semibold">Сотрудник</h3>
               </CardHeader>
               <CardBody className="space-y-4">
                 <div className="flex items-center gap-3">
@@ -359,7 +359,7 @@ export default function CarDetail() {
                   color="primary" 
                   fullWidth
                 >
-                  Профиль клиента
+                  Профиль сотрудника
                 </Button>
               </CardBody>
             </Card>
@@ -367,9 +367,9 @@ export default function CarDetail() {
             <Card className="border border-default-200">
               <CardBody className="text-center py-8">
                 <User size={40} className="text-default-300 mx-auto mb-3" />
-                <p className="text-default-500 mb-3">Клиент не назначен</p>
+                <p className="text-default-500 mb-3">Сотрудник не назначен</p>
                 <Button color="primary" variant="flat">
-                  Назначить клиента
+                  Назначить сотрудника
                 </Button>
               </CardBody>
             </Card>

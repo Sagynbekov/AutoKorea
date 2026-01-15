@@ -135,8 +135,6 @@ export default function Clients() {
   };
 
   const handleAddClient = (formData) => {
-    console.log('Добавление клиента:', formData);
-    // В реальном приложении здесь будет API запрос
     return Promise.resolve();
   };
 

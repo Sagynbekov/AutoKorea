@@ -50,8 +50,8 @@ const reportTypes = [
   },
   {
     id: 'clients',
-    title: 'Отчет по клиентам',
-    description: 'Анализ клиентской базы и активности',
+    title: 'Отчет по сотрудникам',
+    description: 'Анализ производительности и активности',
     icon: Users,
     color: 'secondary',
   },
@@ -107,7 +107,7 @@ function QuickStats() {
           </div>
           <div className="p-4 bg-default-50 rounded-lg text-center">
             <p className="text-2xl font-bold text-secondary">{dashboardStats.totalClients}</p>
-            <p className="text-sm text-default-500">Клиентов</p>
+            <p className="text-sm text-default-500">Сотрудников</p>
           </div>
         </div>
       </CardBody>

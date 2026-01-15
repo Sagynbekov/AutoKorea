@@ -296,7 +296,7 @@ export default function Analytics() {
           color="primary"
         />
         <KPICard
-          title="Клиентов"
+          title="Сотрудников"
           value={`${dashboardStats.totalClients}`}
           target={10}
           trend="up"

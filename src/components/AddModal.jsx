@@ -39,7 +39,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
     return purchase + delivery + customs + repair + other;
   }, [formData.purchaseCost, formData.deliveryCost, formData.customsCost, formData.repairCost, formData.otherCost]);
 
-  // Фильтрация клиентов по ИНН и имени
+  // Фильтрация сотрудников по ИНН и имени
   const filteredClients = useMemo(() => {
     if (!searchValue) return clients;
     
@@ -279,7 +279,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
 
       case 'client':
         return {
-          title: 'Добавить клиента',
+          title: 'Добавить сотрудника',
           fields: [
             {
               name: 'name',
@@ -320,10 +320,10 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
           fields: [
           {
               name: 'clientPassport',
-              label: 'Клиент',
+              label: 'Сотрудник',
               type: 'autocomplete',
               required: true,
-              placeholder: 'Введите ИНН или имя клиента',
+              placeholder: 'Введите ИНН или имя сотрудника',
             },
             {
               name: 'brand',
@@ -586,7 +586,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               }
             }}
             listboxProps={{
-              emptyContent: "Клиент не найден",
+              emptyContent: "Сотрудник не найден",
             }}
           >
             {filteredClients.map((client) => (
