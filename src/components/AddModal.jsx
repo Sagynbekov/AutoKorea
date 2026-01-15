@@ -311,12 +311,6 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: false,
               placeholder: 'client@example.com',
             },
-            {
-              name: 'notes',
-              label: 'Примечания',
-              type: 'textarea',
-              placeholder: 'Дополнительная информация о клиенте...',
-            },
           ],
         };
 

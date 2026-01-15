@@ -345,6 +345,7 @@ export const clients = [
   {
     id: 1,
     name: 'Иван Петров',
+    inn: '12345678901234',
     passportNumber: '1234567890123',
     phone: '+996 (555) 123-456',
     email: 'ivan.petrov@email.com',
@@ -358,6 +359,7 @@ export const clients = [
   {
     id: 2,
     name: 'Сергей Волков',
+    inn: '22345678901234',
     passportNumber: '2234567890123',
     phone: '+996 (555) 234-567',
     email: 'sergey.volkov@email.com',
@@ -371,6 +373,7 @@ export const clients = [
   {
     id: 3,
     name: 'Анна Соколова',
+    inn: '32345678901234',
     passportNumber: '3234567890123',
     phone: '+996 (555) 345-678',
     email: 'anna.sokolova@email.com',
@@ -384,6 +387,7 @@ export const clients = [
   {
     id: 4,
     name: 'Дмитрий Орлов',
+    inn: '42345678901234',
     passportNumber: '4234567890123',
     phone: '+996 (555) 456-789',
     email: 'dmitry.orlov@email.com',
@@ -397,6 +401,7 @@ export const clients = [
   {
     id: 5,
     name: 'Елена Новикова',
+    inn: '52345678901234',
     passportNumber: '5234567890123',
     phone: '+996 (555) 567-890',
     email: 'elena.novikova@email.com',
@@ -410,6 +415,7 @@ export const clients = [
   {
     id: 6,
     name: 'Максим Козлов',
+    inn: '62345678901234',
     passportNumber: '6234567890123',
     phone: '+996 (555) 678-901',
     email: 'max.kozlov@email.com',
@@ -423,6 +429,7 @@ export const clients = [
   {
     id: 7,
     name: 'Виктор Семенов',
+    inn: '72345678901234',
     passportNumber: '7234567890123',
     phone: '+996 (555) 789-012',
     email: 'viktor.semenov@email.com',

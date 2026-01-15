@@ -40,7 +40,7 @@ import {
   ShoppingCart,
   UserPlus,
 } from 'lucide-react';
-import { clients, formatCurrency, formatDate } from '../data/mockData';
+import { clients, cars, carStatuses, formatCurrency, formatDate } from '../data/mockData';
 import AddModal from '../components/AddModal';
 
 // Карточки статистики
@@ -142,11 +142,10 @@ export default function Clients() {
 
   const columns = [
     { key: 'client', label: 'Сотрудник' },
+    { key: 'inn', label: 'ИНН' },
     { key: 'contact', label: 'Контакты' },
     { key: 'city', label: 'Город' },
     { key: 'orders', label: 'Заказы' },
-    { key: 'spent', label: 'Оборот' },
-    { key: 'status', label: 'Статус' },
     { key: 'actions', label: '' },
   ];
 
@@ -164,6 +163,12 @@ export default function Clients() {
               <p className="font-medium">{client.name}</p>
               <p className="text-xs text-default-400">С {formatDate(client.registeredDate)}</p>
             </div>
+          </div>
+        );
+      case 'inn':
+        return (
+          <div className="font-mono text-sm">
+            {client.inn}
           </div>
         );
       case 'contact':
@@ -192,20 +197,6 @@ export default function Clients() {
             <ShoppingCart size={14} className="text-default-400" />
             <span>{client.totalOrders}</span>
           </div>
-        );
-      case 'spent':
-        return (
-          <p className="font-semibold text-success">{formatCurrency(client.totalSpent)}</p>
-        );
-      case 'status':
-        return (
-          <Chip
-            size="sm"
-            color={client.status === 'active' ? 'success' : 'warning'}
-            variant="flat"
-          >
-            {client.status === 'active' ? 'Активный' : 'Новый'}
-          </Chip>
         );
       case 'actions':
         return (
@@ -315,7 +306,7 @@ export default function Clients() {
       <Modal 
         isOpen={isViewOpen} 
         onClose={onViewClose} 
-        size="lg" 
+        size="5xl" 
         classNames={{ 
           base: "rounded-2xl",
           wrapper: "rounded-2xl",
@@ -334,12 +325,12 @@ export default function Clients() {
                   />
                   <div>
                     <h3 className="text-lg font-semibold">{selectedClient.name}</h3>
-                    <p className="text-sm text-default-500">{selectedClient.city}</p>
+                    <p className="text-sm text-default-500">ИНН: {selectedClient.inn}</p>
                   </div>
                 </div>
               </ModalHeader>
               <ModalBody>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="p-4 bg-default-50 rounded-lg">
                     <p className="text-sm text-default-500 mb-1">Телефон</p>
                     <p className="font-medium">{selectedClient.phone}</p>
@@ -348,21 +339,67 @@ export default function Clients() {
                     <p className="text-sm text-default-500 mb-1">Email</p>
                     <p className="font-medium">{selectedClient.email}</p>
                   </div>
-                  <div className="p-4 bg-default-50 rounded-lg">
-                    <p className="text-sm text-default-500 mb-1">Заказов</p>
-                    <p className="font-medium">{selectedClient.totalOrders}</p>
-                  </div>
-                  <div className="p-4 bg-success/10 rounded-lg">
-                    <p className="text-sm text-default-500 mb-1">Общий оборот</p>
-                    <p className="font-semibold text-success">{formatCurrency(selectedClient.totalSpent)}</p>
+                </div>
+                
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold mb-3">Привезенные машины</h4>
+                  <div className="overflow-x-auto">
+                    <Table 
+                      aria-label="Машины сотрудника"
+                      classNames={{
+                        wrapper: 'shadow-none border border-default-200',
+                        th: 'bg-default-100',
+                      }}
+                    >
+                      <TableHeader>
+                        <TableColumn>Машина</TableColumn>
+                        <TableColumn>VIN</TableColumn>
+                        <TableColumn>Год</TableColumn>
+                        <TableColumn>Пробег</TableColumn>
+                        <TableColumn>Закупка</TableColumn>
+                        <TableColumn>Продажа</TableColumn>
+                        <TableColumn>Статус</TableColumn>
+                      </TableHeader>
+                      <TableBody emptyContent="Нет машин">
+                        {cars
+                          .filter((car) => car.manager === selectedClient.name)
+                          .map((car) => {
+                            const status = Object.values(carStatuses).find(
+                              (s) => s.key === car.status
+                            );
+                            return (
+                              <TableRow key={car.id}>
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{car.brand} {car.model}</p>
+                                    <p className="text-xs text-default-400">{car.color}</p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <p className="text-xs font-mono">{car.vin}</p>
+                                </TableCell>
+                                <TableCell>{car.year}</TableCell>
+                                <TableCell>{car.mileage.toLocaleString()} км</TableCell>
+                                <TableCell>
+                                  <p className="font-medium">{formatCurrency(car.purchasePrice)}</p>
+                                </TableCell>
+                                <TableCell>
+                                  <p className="font-medium text-success">{formatCurrency(car.sellingPrice)}</p>
+                                </TableCell>
+                                <TableCell>
+                                  {status && (
+                                    <Chip size="sm" color={status.color} variant="flat">
+                                      {status.label}
+                                    </Chip>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                      </TableBody>
+                    </Table>
                   </div>
                 </div>
-                {selectedClient.notes && (
-                  <div className="mt-4 p-4 bg-default-50 rounded-lg">
-                    <p className="text-sm text-default-500 mb-1">Заметки</p>
-                    <p>{selectedClient.notes}</p>
-                  </div>
-                )}
               </ModalBody>
               <ModalFooter>
                 <Button variant="light" onPress={onViewClose}>
