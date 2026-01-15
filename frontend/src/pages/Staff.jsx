@@ -40,18 +40,16 @@ import {
   ShoppingCart,
   UserPlus,
 } from 'lucide-react';
-import { clients, cars, carStatuses, formatCurrency, formatDate } from '../data/mockData';
+import { cars, carStatuses, formatCurrency, formatDate } from '../data/mockData';
 import AddModal from '../components/AddModal';
+import { useStaff, useStaffOperations } from '../hooks/useStaff';
 
 // Карточки статистики
-function StatsCards() {
+function StatsCards({ clients }) {
   const totalClients = clients.length;
-  const activeClients = clients.filter(c => c.status === 'active').length;
-  const newClients = clients.filter(c => c.status === 'new').length;
-  const totalRevenue = clients.reduce((acc, c) => acc + c.totalSpent, 0);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="mb-6">
       <Card className="border border-default-200">
         <CardBody className="flex flex-row items-center gap-4">
           <div className="p-3 rounded-xl bg-primary/10">
@@ -63,47 +61,13 @@ function StatsCards() {
           </div>
         </CardBody>
       </Card>
-      
-      <Card className="border border-default-200">
-        <CardBody className="flex flex-row items-center gap-4">
-          <div className="p-3 rounded-xl bg-success/10">
-            <Users size={24} className="text-success" />
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Активных</p>
-            <p className="text-2xl font-bold">{activeClients}</p>
-          </div>
-        </CardBody>
-      </Card>
-      
-      <Card className="border border-default-200">
-        <CardBody className="flex flex-row items-center gap-4">
-          <div className="p-3 rounded-xl bg-warning/10">
-            <UserPlus size={24} className="text-warning" />
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Новых</p>
-            <p className="text-2xl font-bold">{newClients}</p>
-          </div>
-        </CardBody>
-      </Card>
-      
-      <Card className="border border-default-200">
-        <CardBody className="flex flex-row items-center gap-4">
-          <div className="p-3 rounded-xl bg-secondary/10">
-            <DollarSign size={24} className="text-secondary" />
-          </div>
-          <div>
-            <p className="text-sm text-default-500">Общий оборот</p>
-            <p className="text-2xl font-bold">{formatCurrency(totalRevenue)}</p>
-          </div>
-        </CardBody>
-      </Card>
     </div>
   );
 }
 
 export default function Clients() {
+  const { staff: clients, loading, error, refetch } = useStaff();
+  const { createStaff } = useStaffOperations();
   const [filterValue, setFilterValue] = useState('');
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
@@ -116,12 +80,12 @@ export default function Clients() {
     const search = filterValue.toLowerCase();
     return clients.filter(
       (client) =>
-        client.name.toLowerCase().includes(search) ||
-        client.phone.includes(search) ||
-        client.email.toLowerCase().includes(search) ||
-        client.city.toLowerCase().includes(search)
+        client.name?.toLowerCase().includes(search) ||
+        client.phone?.includes(search) ||
+        client.email?.toLowerCase().includes(search) ||
+        client.passportNumber?.includes(search)
     );
-  }, [filterValue]);
+  }, [filterValue, clients]);
 
   const pages = Math.ceil(filteredClients.length / rowsPerPage);
   const paginatedClients = useMemo(() => {
@@ -134,15 +98,29 @@ export default function Clients() {
     onViewOpen();
   };
 
-  const handleAddClient = (formData) => {
-    return Promise.resolve();
+  const handleAddClient = async (formData) => {
+    try {
+      await createStaff({
+        name: formData.name,
+        passportNumber: formData.passportNumber,
+        phone: formData.phone,
+        email: formData.email || '',
+        status: 'active',
+        totalOrders: 0,
+        totalSpent: 0,
+        registeredDate: new Date().toISOString(),
+      });
+      await refetch();
+    } catch (error) {
+      console.error('Error adding staff:', error);
+      throw error;
+    }
   };
 
   const columns = [
     { key: 'client', label: 'Сотрудник' },
     { key: 'inn', label: 'ИНН' },
     { key: 'contact', label: 'Контакты' },
-    { key: 'city', label: 'Город' },
     { key: 'orders', label: 'Заказы' },
     { key: 'actions', label: '' },
   ];
@@ -166,7 +144,7 @@ export default function Clients() {
       case 'inn':
         return (
           <div className="font-mono text-sm">
-            {client.inn}
+            {client.passportNumber}
           </div>
         );
       case 'contact':
@@ -180,13 +158,6 @@ export default function Clients() {
               <Mail size={14} className="text-default-400" />
               <span>{client.email}</span>
             </div>
-          </div>
-        );
-      case 'city':
-        return (
-          <div className="flex items-center gap-2">
-            <MapPin size={14} className="text-default-400" />
-            <span>{client.city}</span>
           </div>
         );
       case 'orders':
@@ -240,7 +211,7 @@ export default function Clients() {
       </div>
 
       {/* Stats */}
-      <StatsCards />
+      <StatsCards clients={clients} />
 
       {/* Filters */}
       <div className="flex gap-4">
@@ -323,7 +294,7 @@ export default function Clients() {
                   />
                   <div>
                     <h3 className="text-lg font-semibold">{selectedClient.name}</h3>
-                    <p className="text-sm text-default-500">ИНН: {selectedClient.inn}</p>
+                    <p className="text-sm text-default-500">ИНН: {selectedClient.passportNumber}</p>
                   </div>
                 </div>
               </ModalHeader>

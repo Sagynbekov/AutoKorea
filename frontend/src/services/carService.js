@@ -1,70 +1,116 @@
-import apiClient from '../api/client';
+import { 
+  collection, 
+  getDocs, 
+  getDoc, 
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
+  query,
+  where,
+  limit as firestoreLimit
+} from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 /**
  * Service for managing cars
  */
 class CarService {
-  baseUrl = '/api/cars';
+  collectionName = 'cars';
 
   /**
    * Get all cars
    */
   async getAllCars(filters = {}) {
-    const params = new URLSearchParams();
-    
+    const carsCollection = collection(db, this.collectionName);
+    let q = query(carsCollection);
+
     if (filters.status) {
-      params.append('status', filters.status);
+      q = query(q, where('status', '==', filters.status));
     }
     if (filters.manager) {
-      params.append('manager', filters.manager);
+      q = query(q, where('manager', '==', filters.manager));
     }
     if (filters.limit) {
-      params.append('limit', filters.limit.toString());
+      q = query(q, firestoreLimit(filters.limit));
     }
 
-    const response = await apiClient.get(
-      `${this.baseUrl}${params.toString() ? `?${params.toString()}` : ''}`
-    );
-    return response.data;
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   }
 
   /**
    * Get car by ID
    */
   async getCarById(id) {
-    const response = await apiClient.get(`${this.baseUrl}/${id}`);
-    return response.data;
+    const carDoc = doc(db, this.collectionName, id);
+    const carSnapshot = await getDoc(carDoc);
+    
+    if (!carSnapshot.exists()) {
+      throw new Error('Car not found');
+    }
+    
+    return {
+      id: carSnapshot.id,
+      ...carSnapshot.data()
+    };
   }
 
   /**
    * Get cars by manager name
    */
   async getCarsByManager(managerName) {
-    const response = await apiClient.get(`${this.baseUrl}/manager/${managerName}`);
-    return response.data;
+    const carsCollection = collection(db, this.collectionName);
+    const q = query(carsCollection, where('manager', '==', managerName));
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   }
 
   /**
    * Create a new car
    */
   async createCar(data) {
-    const response = await apiClient.post(this.baseUrl, data);
-    return response.data;
+    const docRef = await addDoc(collection(db, this.collectionName), {
+      ...data,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+    
+    return {
+      id: docRef.id,
+      ...data
+    };
   }
 
   /**
    * Update car
    */
   async updateCar(id, data) {
-    const response = await apiClient.put(`${this.baseUrl}/${id}`, data);
-    return response.data;
+    const carDoc = doc(db, this.collectionName, id);
+    await updateDoc(carDoc, {
+      ...data,
+      updatedAt: new Date().toISOString()
+    });
+    
+    return {
+      id,
+      ...data
+    };
   }
 
   /**
    * Delete car
    */
   async deleteCar(id) {
-    await apiClient.delete(`${this.baseUrl}/${id}`);
+    const carDoc = doc(db, this.collectionName, id);
+    await deleteDoc(carDoc);
   }
 }
 
