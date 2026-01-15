@@ -67,16 +67,13 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('handleSubmit вызван. type:', type, 'currentStep:', currentStep);
     
     // Если это первый шаг для car/order, переходим на второй шаг вместо отправки
     if ((type === 'car' || type === 'order') && currentStep === 1) {
-      console.log('Переход на шаг 2');
       setCurrentStep(2);
       return;
     }
     
-    console.log('Отправка формы');
     setIsLoading(true);
     
     try {
@@ -85,7 +82,6 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
       setCurrentStep(1); // Сбрасываем шаг при успешной отправке
       onClose();
     } catch (error) {
-      console.error('Ошибка при сохранении:', error);
     } finally {
       setIsLoading(false);
     }
@@ -328,6 +324,13 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
         return {
           title: 'Создать заказ',
           fields: [
+          {
+              name: 'clientPassport',
+              label: 'Клиент',
+              type: 'autocomplete',
+              required: true,
+              placeholder: 'Введите ИНН или имя клиента',
+            },
             {
               name: 'brand',
               label: 'Марка',
@@ -656,16 +659,13 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
   };
 
   const handleNext = (e) => {
-    console.log('handleNext вызван. type:', type, 'currentStep:', currentStep);
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
     if ((type === 'car' || type === 'order') && currentStep === 1) {
-      console.log('Условие выполнено, переход на шаг 2');
       setCurrentStep(2);
     } else {
-      console.log('Условие НЕ выполнено');
     }
   };
 
@@ -678,7 +678,6 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
   // Определяем какие поля показывать
   const fieldsToShow = (type === 'car' || type === 'order') && currentStep === 2 ? config.step2Fields : config.fields;
   
-  console.log('Рендер модалки. type:', type, 'currentStep:', currentStep, 'fieldsToShow:', fieldsToShow?.length);
 
   return (
     <Modal
@@ -753,7 +752,6 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
                   color="primary"
                   type="button"
                   onPress={() => {
-                    console.log('Кнопка "Следующий" нажата');
                     handleNext();
                   }}
                   isDisabled={isLoading}
