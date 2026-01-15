@@ -3,7 +3,7 @@ import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import CarsList from './pages/CarsList';
 import CarDetail from './pages/CarDetail';
-import Clients from './pages/Clients';
+import Clients from './pages/Staff';
 import Finance from './pages/Finance';
 import Calculator from './pages/Calculator';
 import Orders from './pages/Orders';

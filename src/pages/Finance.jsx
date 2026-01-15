@@ -164,20 +164,29 @@ function RevenueChart() {
         </div>
 
         {/* Mini chart */}
-        <div className="h-32 flex items-end justify-around gap-2 px-4">
-          {salesByMonth.map((month, index) => {
-            const maxRevenue = Math.max(...salesByMonth.map(s => s.revenue));
-            const height = (month.revenue / maxRevenue) * 100;
-            return (
-              <div key={month.month} className="flex-1 flex flex-col items-center gap-1">
-                <div 
-                  className="w-full bg-primary rounded-t transition-all hover:bg-primary/80"
-                  style={{ height: `${height}%` }}
-                />
+        <div className="px-4">
+          <div className="h-32 flex items-end justify-around gap-2 mb-2">
+            {salesByMonth.map((month, index) => {
+              const maxRevenue = Math.max(...salesByMonth.map(s => s.revenue));
+              const heightPx = (month.revenue / maxRevenue) * 120; // 120px max height
+              return (
+                <div key={month.month} className="flex-1 flex flex-col items-center gap-1">
+                  <div 
+                    className="w-full bg-primary rounded-t transition-all hover:bg-primary/80 cursor-pointer"
+                    style={{ height: `${heightPx}px`, minHeight: '4px' }}
+                    title={`${month.month}: ${formatCurrency(month.revenue)}`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          <div className="flex items-center justify-around gap-2">
+            {salesByMonth.map((month) => (
+              <div key={month.month} className="flex-1 text-center">
                 <span className="text-xs text-default-500">{month.month}</span>
               </div>
-            );
-          })}
+            ))}
+          </div>
         </div>
       </CardBody>
     </Card>
