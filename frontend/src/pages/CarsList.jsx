@@ -53,17 +53,16 @@ const columns = [
   { key: 'actions', label: '', sortable: false },
 ];
 
-const brandOptions = [
-  { key: 'all', label: 'Все марки' },
-  { key: 'Hyundai', label: 'Hyundai' },
-  { key: 'Kia', label: 'Kia' },
-  { key: 'Genesis', label: 'Genesis' },
+const statusOptions = [
+  { key: 'all', label: 'Все статусы' },
+  { key: 'in_stock', label: 'В наличии' },
+  { key: 'sold', label: 'Продан' },
 ];
 
 export default function CarsList() {
   const { cars: allCars, loading, error, refetch } = useCars();
   const [filterValue, setFilterValue] = useState('');
-  const [brandFilter, setBrandFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [sortDescriptor, setSortDescriptor] = useState({ column: 'car', direction: 'ascending' });
@@ -87,13 +86,13 @@ export default function CarsList() {
       );
     }
 
-    // Фильтр по марке
-    if (brandFilter !== 'all') {
-      filtered = filtered.filter((car) => car.brand === brandFilter);
+    // Фильтр по статусу
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((car) => car.status === statusFilter);
     }
 
     return filtered;
-  }, [allCars, filterValue, brandFilter]);
+  }, [allCars, filterValue, statusFilter]);
 
   // Сортировка
   const sortedCars = useMemo(() => {
@@ -279,12 +278,12 @@ export default function CarsList() {
 
         <Select
           className="w-full sm:w-48"
-          placeholder="Марка"
-          selectedKeys={[brandFilter]}
-          onChange={(e) => setBrandFilter(e.target.value)}
+          placeholder="Статус"
+          selectedKeys={[statusFilter]}
+          onChange={(e) => setStatusFilter(e.target.value)}
         >
-          {brandOptions.map((brand) => (
-            <SelectItem key={brand.key}>{brand.label}</SelectItem>
+          {statusOptions.map((status) => (
+            <SelectItem key={status.key}>{status.label}</SelectItem>
           ))}
         </Select>
       </div>
