@@ -163,10 +163,13 @@ export default function Clients() {
           </div>
         );
       case 'orders':
+        const carCount = cars.filter(
+          car => car.managerName === client.name || car.managerPassport === client.passportNumber
+        ).length;
         return (
           <div className="flex items-center gap-2">
             <ShoppingCart size={14} className="text-default-400" />
-            <span>{client.totalOrders}</span>
+            <span>{carCount}</span>
           </div>
         );
       case 'actions':
