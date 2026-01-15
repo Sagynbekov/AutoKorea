@@ -147,7 +147,6 @@ function CarStatusOverview() {
     { label: 'В пути', count: statusCounts.inTransit, icon: Ship, color: 'warning' },
     { label: 'Растаможка', count: statusCounts.customs, icon: Clock, color: 'secondary' },
     { label: 'На складе', count: statusCounts.inStock, icon: Package, color: 'success' },
-    { label: 'Забронировано', count: statusCounts.reserved, icon: AlertCircle, color: 'primary' },
     { label: 'Продано', count: statusCounts.sold, icon: CheckCircle, color: 'success' },
   ];
 
@@ -240,41 +239,7 @@ function RecentTransactions() {
   );
 }
 
-// Компонент популярных марок
-function PopularBrands() {
-  return (
-    <Card className="border border-default-200">
-      <CardHeader className="px-5 pt-5">
-        <div>
-          <h3 className="text-lg font-semibold">Популярные марки</h3>
-          <p className="text-sm text-default-500">За все время</p>
-        </div>
-      </CardHeader>
-      <CardBody className="px-5 pb-5">
-        <div className="space-y-4">
-          {popularBrands.map((brand, index) => (
-            <div key={brand.brand}>
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-3">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
-                    {index + 1}
-                  </span>
-                  <span className="font-medium">{brand.brand}</span>
-                </div>
-                <span className="text-sm text-default-500">{brand.count} авто</span>
-              </div>
-              <Progress 
-                value={brand.percentage} 
-                color="primary"
-                size="sm"
-              />
-            </div>
-          ))}
-        </div>
-      </CardBody>
-    </Card>
-  );
-}
+
 
 // Компонент графика продаж (упрощенный)
 function SalesChart() {
@@ -335,7 +300,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard
           title="Общая выручка"
           value={formatCurrency(dashboardStats.totalRevenue)}
@@ -353,12 +318,6 @@ export default function Dashboard() {
           color="primary"
         />
         <StatCard
-          title="Авто в пути"
-          value={dashboardStats.carsInTransit}
-          icon={Ship}
-          color="warning"
-        />
-        <StatCard
           title="Сотрудников"
           value={dashboardStats.totalClients}
           change="+2"
@@ -369,12 +328,12 @@ export default function Dashboard() {
       </div>
 
       {/* Second row stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <StatCard
-          title="Продано за месяц"
-          value={dashboardStats.carsSoldThisMonth}
-          icon={CheckCircle}
-          color="success"
+          title="Авто в пути"
+          value={dashboardStats.carsInTransit}
+          icon={Ship}
+          color="warning"
         />
         <StatCard
           title="На складе"
@@ -387,12 +346,6 @@ export default function Dashboard() {
           value={`${dashboardStats.averageMargin}%`}
           icon={TrendingUp}
           color="success"
-        />
-        <StatCard
-          title="Ожидает оплаты"
-          value={formatCurrency(dashboardStats.pendingPayments)}
-          icon={Clock}
-          color="warning"
         />
       </div>
 
@@ -410,11 +363,6 @@ export default function Dashboard() {
           <RecentCars />
         </div>
         <RecentTransactions />
-      </div>
-
-      {/* Popular Brands */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <PopularBrands />
       </div>
     </div>
   );

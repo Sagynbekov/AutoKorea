@@ -384,10 +384,7 @@ export default function CarDetail() {
               <Button variant="flat" color="primary" fullWidth startContent={<FileText size={16} />}>
                 Создать договор
               </Button>
-              <Button variant="flat" color="success" fullWidth startContent={<DollarSign size={16} />}>
-                Добавить оплату
-              </Button>
-              <Button variant="flat" color="warning" fullWidth startContent={<Ship size={16} />}>
+              <Button variant="flat" color="success" fullWidth startContent={<Ship size={16} />}>
                 Обновить статус
               </Button>
               <Button variant="flat" color="danger" fullWidth startContent={<Trash2 size={16} />}>

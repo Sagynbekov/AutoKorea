@@ -48,6 +48,7 @@ const columns = [
   { key: 'purchasePrice', label: 'Закупка', sortable: true },
   { key: 'sellingPrice', label: 'Продажа', sortable: true },
   { key: 'profit', label: 'Прибыль', sortable: true },
+  { key: 'status', label: 'Статус', sortable: true },
   { key: 'actions', label: '', sortable: false },
 ];
 
@@ -69,8 +70,8 @@ export default function CarsList() {
 
   // Фильтрация данных
   const filteredCars = useMemo(() => {
-    // Показываем только авто на складе
-    let filtered = cars.filter(car => car.status === 'in_stock');
+    // Показываем только авто на складе и проданные
+    let filtered = cars.filter(car => car.status === 'in_stock' || car.status === 'sold');
 
     // Поиск по тексту
     if (filterValue) {
@@ -118,6 +119,9 @@ export default function CarsList() {
           break;
         case 'profit':
           cmp = calculateProfit(a) - calculateProfit(b);
+          break;
+        case 'status':
+          cmp = a.status.localeCompare(b.status);
           break;
         default:
           cmp = 0;
@@ -180,6 +184,17 @@ export default function CarsList() {
           <p className={`font-semibold ${profit > 0 ? 'text-success' : 'text-danger'}`}>
             {formatCurrency(profit)}
           </p>
+        );
+      case 'status':
+        const isSold = car.status === 'sold';
+        return (
+          <Chip 
+            color={isSold ? 'danger' : 'success'} 
+            variant="flat"
+            size="sm"
+          >
+            {isSold ? 'Продан' : 'В наличии'}
+          </Chip>
         );
       case 'actions':
         return (
