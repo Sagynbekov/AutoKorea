@@ -18,7 +18,9 @@ import {
   TableColumn,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
+  Select,
+  SelectItem
 } from '@heroui/react';
 import {
   ArrowLeft,
@@ -37,13 +39,15 @@ import {
   Trash2,
   User
 } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   formatCurrency,
   formatDate,
-  getStatusInfo
+  getStatusInfo,
+  carStatuses
 } from '../data/mockData';
-import { useCars } from '../hooks/useCars';
+import { useCars, useCarOperations } from '../hooks/useCars';
 import { useStaff } from '../hooks/useStaff';
 
 // Компонент карточки характеристики
@@ -181,9 +185,12 @@ function FinanceCard({ car }) {
 export default function CarDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { cars } = useCars();
+  const { cars, refetch } = useCars();
   const { staff } = useStaff();
+  const { updateCar } = useCarOperations();
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
+  const { isOpen: isStatusOpen, onOpen: onStatusOpen, onClose: onStatusClose } = useDisclosure();
+  const [selectedStatus, setSelectedStatus] = useState('');
   
   const car = cars.find(c => c.id === id);
   
@@ -395,7 +402,13 @@ export default function CarDetail() {
               <Button variant="flat" color="primary" fullWidth startContent={<FileText size={16} />}>
                 Создать договор
               </Button>
-              <Button variant="flat" color="success" fullWidth startContent={<Ship size={16} />}>
+              <Button 
+                variant="flat" 
+                color="success" 
+                fullWidth 
+                startContent={<Ship size={16} />}
+                onPress={onStatusOpen}
+              >
                 Обновить статус
               </Button>
               <Button variant="flat" color="danger" fullWidth startContent={<Trash2 size={16} />}>
@@ -405,6 +418,79 @@ export default function CarDetail() {
           </Card>
         </div>
       </div>
+
+      {/* Update Status Modal */}
+      <Modal 
+        isOpen={isStatusOpen} 
+        onClose={onStatusClose}
+        classNames={{ 
+          base: "rounded-2xl",
+          wrapper: "rounded-2xl",
+          backdrop: "bg-overlay/50 backdrop-opacity-disabled"
+        }}
+      >
+        <ModalContent className="rounded-2xl">
+          <ModalHeader className="flex flex-col gap-1">
+            <h3 className="text-lg font-semibold">Обновить статус доставки</h3>
+            <p className="text-sm text-default-500 font-normal">{car.brand} {car.model}</p>
+          </ModalHeader>
+          <ModalBody>
+            <Select
+              label="Выберите новый статус"
+              placeholder="Выберите статус"
+              selectedKeys={selectedStatus ? [selectedStatus] : []}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              classNames={{
+                trigger: "rounded-lg"
+              }}
+            >
+              {Object.values(carStatuses).map((status) => (
+                <SelectItem 
+                  key={status.key} 
+                  value={status.key}
+                  textValue={status.label}
+                >
+                  <div className="flex items-center gap-2">
+                    <Chip size="sm" color={status.color} variant="flat">
+                      {status.label}
+                    </Chip>
+                  </div>
+                </SelectItem>
+              ))}
+            </Select>
+            
+            <div className="mt-4 p-4 bg-default-50 rounded-lg">
+              <p className="text-sm text-default-500 mb-2">Текущий статус:</p>
+              <Chip color={statusInfo.color} variant="flat">
+                {statusInfo.label}
+              </Chip>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="light" onPress={onStatusClose}>
+              Отмена
+            </Button>
+            <Button 
+              color="success" 
+              onPress={async () => {
+                if (selectedStatus && selectedStatus !== car.status) {
+                  try {
+                    await updateCar(car.id, { status: selectedStatus });
+                    await refetch();
+                    onStatusClose();
+                    setSelectedStatus('');
+                  } catch (error) {
+                    console.error('Error updating status:', error);
+                  }
+                }
+              }}
+              isDisabled={!selectedStatus || selectedStatus === car.status}
+            >
+              Обновить
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       {/* Staff Detail Modal */}
       <Modal 
