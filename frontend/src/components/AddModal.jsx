@@ -65,6 +65,36 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Форматирование телефона с автоматическим +996
+  const handlePhoneChange = (value) => {
+    // Удаляем все нецифровые символы
+    const digits = value.replace(/\D/g, '');
+    
+    // Берем только первые 9 цифр после кода страны
+    const phoneDigits = digits.startsWith('996') ? digits.slice(3, 12) : digits.slice(0, 9);
+    
+    // Форматируем номер: +996 XXX XXX XXX
+    let formatted = '+996';
+    if (phoneDigits.length > 0) {
+      formatted += ' ' + phoneDigits.slice(0, 3);
+    }
+    if (phoneDigits.length > 3) {
+      formatted += ' ' + phoneDigits.slice(3, 6);
+    }
+    if (phoneDigits.length > 6) {
+      formatted += ' ' + phoneDigits.slice(6, 9);
+    }
+    
+    setFormData(prev => ({ ...prev, phone: formatted }));
+  };
+
+  // Ограничение ввода ИНН до 14 цифр
+  const handlePassportChange = (value) => {
+    // Удаляем все нецифровые символы и ограничиваем до 14 цифр
+    const digits = value.replace(/\D/g, '').slice(0, 14);
+    setFormData(prev => ({ ...prev, passportNumber: digits }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -293,15 +323,16 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               label: 'ИНН паспорта',
               type: 'input',
               required: true,
-              placeholder: '1234567890123',
+              placeholder: '12345678901234',
+              maxLength: 14,
+              isNumeric: true,
             },
             {
               name: 'phone',
               label: 'Телефон',
-              type: 'input',
-              inputType: 'tel',
+              type: 'phone',
               required: true,
-              placeholder: '+996 (XXX) XXX-XXX',
+              placeholder: '+996 XXX XXX XXX',
             },
             {
               name: 'email',
@@ -521,12 +552,30 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
     };
 
     switch (field.type) {
+      case 'phone':
+        return (
+          <Input
+            {...commonProps}
+            type="tel"
+            value={formData[field.name] || '+996 '}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            maxLength={16}
+          />
+        );
+
       case 'input':
         return (
           <Input
             {...commonProps}
             type={field.inputType || 'text'}
-            onChange={(e) => handleInputChange(field.name, e.target.value)}
+            onChange={(e) => {
+              if (field.isNumeric) {
+                handlePassportChange(e.target.value);
+              } else {
+                handleInputChange(field.name, e.target.value);
+              }
+            }}
+            maxLength={field.maxLength}
           />
         );
 
