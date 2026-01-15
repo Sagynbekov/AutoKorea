@@ -36,9 +36,10 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     calculateProfit,
-    cars,
-    formatCurrency
+    formatCurrency,
+    getStatusInfo
 } from '../data/mockData';
+import { useCars } from '../hooks/useCars';
 
 const columns = [
   { key: 'car', label: 'Автомобиль', sortable: true },
@@ -60,6 +61,7 @@ const brandOptions = [
 ];
 
 export default function CarsList() {
+  const { cars: allCars, loading, error, refetch } = useCars();
   const [filterValue, setFilterValue] = useState('');
   const [brandFilter, setBrandFilter] = useState('all');
   const [page, setPage] = useState(1);
@@ -71,7 +73,7 @@ export default function CarsList() {
   // Фильтрация данных
   const filteredCars = useMemo(() => {
     // Показываем только авто на складе и проданные
-    let filtered = cars.filter(car => car.status === 'in_stock' || car.status === 'sold');
+    let filtered = allCars.filter(car => car.status === 'in_stock' || car.status === 'sold');
 
     // Поиск по тексту
     if (filterValue) {
@@ -91,7 +93,7 @@ export default function CarsList() {
     }
 
     return filtered;
-  }, [filterValue, brandFilter]);
+  }, [allCars, filterValue, brandFilter]);
 
   // Сортировка
   const sortedCars = useMemo(() => {
@@ -162,7 +164,14 @@ export default function CarsList() {
             </div>
             <div>
               <p className="font-medium">{car.brand} {car.model}</p>
-              <p className="text-xs text-default-400">{car.color}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-xs text-default-500">Цвет:</p>
+                <div 
+                  className="w-6 h-3 rounded border border-default-300"
+                  style={{ backgroundColor: car.color }}
+                  title={car.color}
+                />
+              </div>
             </div>
           </div>
         );
@@ -175,25 +184,34 @@ export default function CarsList() {
       case 'mileage':
         return <p>{car.mileage.toLocaleString()} км</p>;
       case 'purchasePrice':
-        return <p className="font-medium">{formatCurrency(car.purchasePrice)}</p>;
+        const totalPurchaseCost = (car.purchasePrice || 0) + (car.deliveryCost || 0) + (car.customsCost || 0) + (car.repairCost || 0) + (car.otherCost || 0);
+        return <p className="font-medium">{formatCurrency(totalPurchaseCost)}</p>;
       case 'sellingPrice':
         return <p className="font-medium">{formatCurrency(car.sellingPrice)}</p>;
       case 'profit':
-        const profit = calculateProfit(car);
+        const purchasePrice = car.purchasePrice || 0;
+        const deliveryCost = car.deliveryCost || 0;
+        const customsCost = car.customsCost || 0;
+        const repairCost = car.repairCost || 0;
+        const otherCost = car.otherCost || 0;
+        const totalCost = purchasePrice + deliveryCost + customsCost + repairCost + otherCost;
+        const sellingPrice = car.sellingPrice || 0;
+        const profit = sellingPrice - totalCost;
+        
         return (
-          <p className={`font-semibold ${profit > 0 ? 'text-success' : 'text-danger'}`}>
+          <p className="font-semibold text-success">
             {formatCurrency(profit)}
           </p>
         );
       case 'status':
-        const isSold = car.status === 'sold';
+        const statusInfo = getStatusInfo(car.status);
         return (
           <Chip 
-            color={isSold ? 'danger' : 'success'} 
+            color={statusInfo.color} 
             variant="flat"
             size="sm"
           >
-            {isSold ? 'Продан' : 'В наличии'}
+            {statusInfo.label}
           </Chip>
         );
       case 'actions':
@@ -275,7 +293,7 @@ export default function CarsList() {
       <div className="flex flex-wrap gap-4 text-sm">
         <div className="flex items-center gap-2">
           <span className="text-default-500">Всего:</span>
-          <span className="font-semibold">{cars.length} авто</span>
+          <span className="font-semibold">{allCars.filter(car => car.status === 'in_stock' || car.status === 'sold').length} авто</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-default-500">Найдено:</span>
