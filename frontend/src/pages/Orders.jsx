@@ -36,20 +36,22 @@ import {
   AlertCircle,
   Car,
 } from 'lucide-react';
-import { cars, clients, getStatusInfo, formatCurrency, formatDate } from '../data/mockData';
+import { getStatusInfo, formatCurrency, formatDate } from '../data/mockData';
 import AddModal from '../components/AddModal';
+import { useCars } from '../hooks/useCars';
 
 // Фильтруем только заказанные авто (не на складе и не проданные)
 const orderStatuses = ['in_korea', 'at_port', 'shipping', 'customs'];
 
 export default function Orders() {
+  const { cars, loading, error, refetch } = useCars();
   const [filterValue, setFilterValue] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const orders = useMemo(() => {
     return cars.filter(car => orderStatuses.includes(car.status));
-  }, []);
+  }, [cars]);
 
   const filteredOrders = useMemo(() => {
     let filtered = [...orders];
@@ -100,10 +102,13 @@ export default function Orders() {
     return statusProgress[status] || 0;
   };
 
-  const handleAddOrder = (formData) => {
-    console.log('Создание заказа:', formData);
-    // В реальном приложении здесь будет API запрос
-    return Promise.resolve();
+  const handleAddOrder = async (formData) => {
+    try {
+      // Заказ уже создается в AddModal через carService
+      await refetch(); // Обновляем список после создания
+    } catch (error) {
+      console.error('Error refreshing orders:', error);
+    }
   };
 
   const renderCell = (order, columnKey) => {
@@ -123,10 +128,10 @@ export default function Orders() {
           </div>
         );
       case 'employee':
-        return order.manager ? (
+        return order.managerName ? (
           <div className="flex items-center gap-2">
-            <Avatar name={order.manager} size="sm" className="bg-primary" />
-            <span className="text-sm">{order.manager}</span>
+            <Avatar name={order.managerName} size="sm" className="bg-primary" />
+            <span className="text-sm">{order.managerName}</span>
           </div>
         ) : (
           <span className="text-default-400 text-sm">Не назначен</span>

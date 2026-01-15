@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -13,7 +13,8 @@ import {
   Autocomplete,
   AutocompleteItem,
 } from '@heroui/react';
-import { clients, cars } from '../data/mockData';
+import { useStaff } from '../hooks/useStaff';
+import { carService } from '../services/carService';
 
 /**
  * Универсальная модалка для добавления различных сущностей
@@ -23,6 +24,7 @@ import { clients, cars } from '../data/mockData';
  * @param {function} onSubmit - Функция обработки отправки формы
  */
 export default function AddModal({ isOpen, onClose, type, onSubmit }) {
+  const { staff: clients, loading: clientsLoading } = useStaff();
   const [formData, setFormData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -48,18 +50,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
       client.passportNumber?.toLowerCase().includes(search) ||
       client.name.toLowerCase().includes(search)
     );
-  }, [searchValue]);
-
-  // Фильтрация автомобилей по VIN и марке/модели
-  const filteredCars = useMemo(() => {
-    if (!carSearchValue) return cars;
-    
-    const search = carSearchValue.toLowerCase();
-    return cars.filter(car => 
-      car.vin?.toLowerCase().includes(search) ||
-      `${car.brand} ${car.model}`.toLowerCase().includes(search)
-    );
-  }, [carSearchValue]);
+  }, [searchValue, clients]);
 
   const handleInputChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -107,11 +98,52 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
     setIsLoading(true);
     
     try {
-      await onSubmit(formData);
+      if (type === 'order') {
+        // Находим выбранного клиента по passportNumber
+        const selectedClient = clients.find(
+          client => client.passportNumber === formData.clientPassport
+        );
+        
+        // Для заказов сохраняем напрямую в Firebase в коллекцию Orders
+        const orderData = {
+          brand: formData.brand,
+          model: formData.model,
+          year: parseInt(formData.year),
+          vin: formData.vin,
+          mileage: parseInt(formData.mileage),
+          color: formData.color || '#000000',
+          engineVolume: formData.engineVolume,
+          fuel: formData.fuel,
+          transmission: formData.transmission,
+          drive: formData.drive,
+          steering: formData.steering,
+          condition: formData.condition,
+          carfax: formData.carfax || '',
+          purchasePrice: parseFloat(formData.purchaseCost) || 0,
+          deliveryCost: parseFloat(formData.deliveryCost) || 0,
+          customsCost: parseFloat(formData.customsCost) || 0,
+          repairCost: parseFloat(formData.repairCost) || 0,
+          otherCost: parseFloat(formData.otherCost) || 0,
+          sellingPrice: parseFloat(formData.sellingPrice) || 0,
+          managerName: selectedClient?.name || '',
+          managerPassport: formData.clientPassport,
+          status: 'in_korea',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+        await carService.createCar(orderData);
+        // Вызываем onSubmit для обновления списка в родительском компоненте
+        if (onSubmit) {
+          await onSubmit(formData);
+        }
+      } else {
+        await onSubmit(formData);
+      }
       setFormData({});
-      setCurrentStep(1); // Сбрасываем шаг при успешной отправке
+      setCurrentStep(1);
       onClose();
     } catch (error) {
+      console.error('Error submitting:', error);
     } finally {
       setIsLoading(false);
     }
@@ -540,7 +572,6 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
 
   const renderField = (field) => {
     const commonProps = {
-      key: field.name,
       label: field.label,
       placeholder: field.placeholder,
       value: formData[field.name] || '',
@@ -555,6 +586,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
       case 'phone':
         return (
           <Input
+            key={field.name}
             {...commonProps}
             type="tel"
             value={formData[field.name] || '+996 '}
@@ -566,6 +598,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
       case 'input':
         return (
           <Input
+            key={field.name}
             {...commonProps}
             type={field.inputType || 'text'}
             onChange={(e) => {
@@ -581,7 +614,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
 
       case 'color':
         return (
-          <div className="flex flex-col gap-2">
+          <div key={field.name} className="flex flex-col gap-2">
             <label className="text-sm font-medium text-default-700">
               {field.label}
             </label>
@@ -589,12 +622,12 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               <input
                 type="color"
                 value={formData[field.name] || '#000000'}
-                onChange={(e) => handleInputChange(field.name, e.target.value)}
+                onChange={(e) => handleInputChange(field.name, e.target.value || '#000000')}
                 className="h-10 w-20 rounded-lg border-2 border-default-200 cursor-pointer"
               />
               <Input
                 value={formData[field.name] || '#000000'}
-                onChange={(e) => handleInputChange(field.name, e.target.value)}
+                onChange={(e) => handleInputChange(field.name, e.target.value || '#000000')}
                 placeholder={field.placeholder}
                 variant="bordered"
                 className="flex-1"
@@ -606,6 +639,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
       case 'select':
         return (
           <Select
+            key={field.name}
             {...commonProps}
             placeholder={field.placeholder || field.label}
             selectedKeys={formData[field.name] ? [formData[field.name]] : []}
@@ -622,6 +656,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
       case 'autocomplete':
         return (
           <Autocomplete
+            key={field.name}
             {...commonProps}
             inputValue={searchValue}
             onInputChange={setSearchValue}

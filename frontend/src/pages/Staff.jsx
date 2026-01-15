@@ -40,9 +40,10 @@ import {
   ShoppingCart,
   UserPlus,
 } from 'lucide-react';
-import { cars, carStatuses, formatCurrency, formatDate } from '../data/mockData';
+import { carStatuses, formatCurrency, formatDate } from '../data/mockData';
 import AddModal from '../components/AddModal';
 import { useStaff, useStaffOperations } from '../hooks/useStaff';
+import { useCars } from '../hooks/useCars';
 
 // Карточки статистики
 function StatsCards({ clients }) {
@@ -67,6 +68,7 @@ function StatsCards({ clients }) {
 
 export default function Clients() {
   const { staff: clients, loading, error, refetch } = useStaff();
+  const { cars } = useCars();
   const { createStaff } = useStaffOperations();
   const [filterValue, setFilterValue] = useState('');
   const [page, setPage] = useState(1);
@@ -331,7 +333,7 @@ export default function Clients() {
                       </TableHeader>
                       <TableBody emptyContent="Нет машин">
                         {cars
-                          .filter((car) => car.manager === selectedClient.name)
+                          .filter((car) => car.managerName === selectedClient.name || car.managerPassport === selectedClient.passportNumber)
                           .map((car) => {
                             const status = Object.values(carStatuses).find(
                               (s) => s.key === car.status
