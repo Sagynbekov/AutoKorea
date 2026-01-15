@@ -16,7 +16,6 @@ import {
 import {
   Settings as SettingsIcon,
   User,
-  Bell,
   Shield,
   Palette,
   Globe,
@@ -85,68 +84,7 @@ function ProfileSettings() {
   );
 }
 
-function NotificationSettings() {
-  const [emailNotif, setEmailNotif] = useState(true);
-  const [pushNotif, setPushNotif] = useState(true);
-  const [smsNotif, setSmsNotif] = useState(false);
-
-  const notifications = [
-    { key: 'new_order', label: 'Новые заказы', description: 'Уведомления о новых заказах от клиентов' },
-    { key: 'status_change', label: 'Изменение статуса', description: 'Когда статус авто меняется' },
-    { key: 'payment', label: 'Оплаты', description: 'Уведомления о получении оплаты' },
-    { key: 'arrival', label: 'Прибытие авто', description: 'Когда автомобиль прибывает на склад' },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <h3 className="font-semibold">Каналы уведомлений</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-default-50 rounded-lg">
-            <div>
-              <p className="font-medium">Email уведомления</p>
-              <p className="text-sm text-default-500">Получать уведомления на почту</p>
-            </div>
-            <Switch isSelected={emailNotif} onValueChange={setEmailNotif} />
-          </div>
-          <div className="flex items-center justify-between p-4 bg-default-50 rounded-lg">
-            <div>
-              <p className="font-medium">Push уведомления</p>
-              <p className="text-sm text-default-500">Уведомления в браузере</p>
-            </div>
-            <Switch isSelected={pushNotif} onValueChange={setPushNotif} />
-          </div>
-          <div className="flex items-center justify-between p-4 bg-default-50 rounded-lg">
-            <div>
-              <p className="font-medium">SMS уведомления</p>
-              <p className="text-sm text-default-500">Важные уведомления по SMS</p>
-            </div>
-            <Switch isSelected={smsNotif} onValueChange={setSmsNotif} />
-          </div>
-        </div>
-      </div>
-
-      <Divider />
-
-      <div className="space-y-4">
-        <h3 className="font-semibold">Типы уведомлений</h3>
-        <div className="space-y-3">
-          {notifications.map((notif) => (
-            <div key={notif.key} className="flex items-center justify-between p-4 bg-default-50 rounded-lg">
-              <div>
-                <p className="font-medium">{notif.label}</p>
-                <p className="text-sm text-default-500">{notif.description}</p>
-              </div>
-              <Switch defaultSelected />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AppearanceSettings({ isDark, setIsDark }) {
+function AppearanceAndSecuritySettings({ isDark, setIsDark }) {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -178,38 +116,6 @@ function AppearanceSettings({ isDark, setIsDark }) {
       <Divider />
 
       <div className="space-y-4">
-        <h3 className="font-semibold">Региональные настройки</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select label="Язык" defaultSelectedKeys={['ru']}>
-            <SelectItem key="ru">Русский</SelectItem>
-            <SelectItem key="en">English</SelectItem>
-            <SelectItem key="ko">한국어</SelectItem>
-          </Select>
-          <Select label="Валюта по умолчанию" defaultSelectedKeys={['usd']}>
-            <SelectItem key="usd">USD ($)</SelectItem>
-            <SelectItem key="rub">RUB (₽)</SelectItem>
-            <SelectItem key="krw">KRW (₩)</SelectItem>
-          </Select>
-          <Select label="Часовой пояс" defaultSelectedKeys={['msk']}>
-            <SelectItem key="msk">Москва (UTC+3)</SelectItem>
-            <SelectItem key="vlad">Владивосток (UTC+10)</SelectItem>
-            <SelectItem key="seoul">Сеул (UTC+9)</SelectItem>
-          </Select>
-          <Select label="Формат даты" defaultSelectedKeys={['dmy']}>
-            <SelectItem key="dmy">DD.MM.YYYY</SelectItem>
-            <SelectItem key="mdy">MM/DD/YYYY</SelectItem>
-            <SelectItem key="ymd">YYYY-MM-DD</SelectItem>
-          </Select>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SecuritySettings() {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
         <h3 className="font-semibold">Изменить пароль</h3>
         <div className="space-y-4 max-w-md">
           <Input
@@ -225,34 +131,6 @@ function SecuritySettings() {
             type="password"
           />
           <Button color="primary">Изменить пароль</Button>
-        </div>
-      </div>
-
-      <Divider />
-
-      <div className="space-y-4">
-        <h3 className="font-semibold">Двухфакторная аутентификация</h3>
-        <div className="flex items-center justify-between p-4 bg-default-50 rounded-lg">
-          <div>
-            <p className="font-medium">2FA через SMS</p>
-            <p className="text-sm text-default-500">Дополнительная защита при входе</p>
-          </div>
-          <Switch />
-        </div>
-      </div>
-
-      <Divider />
-
-      <div className="space-y-4">
-        <h3 className="font-semibold">Активные сессии</h3>
-        <div className="p-4 bg-default-50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">Текущая сессия</p>
-              <p className="text-sm text-default-500">Windows • Chrome • Москва</p>
-            </div>
-            <span className="text-xs text-success">Активна</span>
-          </div>
         </div>
       </div>
     </div>
@@ -290,37 +168,15 @@ export default function Settings({ isDark, setIsDark }) {
               <ProfileSettings />
             </Tab>
             <Tab
-              key="notifications"
-              title={
-                <div className="flex items-center gap-2">
-                  <Bell size={16} />
-                  <span>Уведомления</span>
-                </div>
-              }
-            >
-              <NotificationSettings />
-            </Tab>
-            <Tab
-              key="appearance"
+              key="appearance-security"
               title={
                 <div className="flex items-center gap-2">
                   <Palette size={16} />
-                  <span>Внешний вид</span>
+                  <span>Внешний вид и безопасность</span>
                 </div>
               }
             >
-              <AppearanceSettings isDark={isDark} setIsDark={setIsDark} />
-            </Tab>
-            <Tab
-              key="security"
-              title={
-                <div className="flex items-center gap-2">
-                  <Shield size={16} />
-                  <span>Безопасность</span>
-                </div>
-              }
-            >
-              <SecuritySettings />
+              <AppearanceAndSecuritySettings isDark={isDark} setIsDark={setIsDark} />
             </Tab>
           </Tabs>
         </CardBody>
