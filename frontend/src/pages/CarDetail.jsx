@@ -1,49 +1,38 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
+  Avatar,
+  Button,
   Card,
   CardBody,
   CardHeader,
-  Button,
   Chip,
   Divider,
-  Image,
-  Tab,
-  Tabs,
-  Progress,
-  Avatar,
+  Progress
 } from '@heroui/react';
 import {
   ArrowLeft,
-  Edit,
-  Trash2,
-  Car,
   Calendar,
-  Gauge,
-  Fuel,
-  Settings,
-  DollarSign,
-  Ship,
+  Car,
   FileText,
-  User,
-  Phone,
+  Fuel,
+  Gauge,
   Mail,
-  MapPin,
-  Clock,
-  CheckCircle,
   Package,
+  Phone,
   Printer,
+  Settings,
   Share2,
+  Ship,
+  Trash2,
+  User
 } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  cars,
-  clients,
-  getStatusInfo,
   formatCurrency,
   formatDate,
-  calculateProfit,
-  calculateTotalCost,
+  getStatusInfo
 } from '../data/mockData';
 import { useCars } from '../hooks/useCars';
+import { useStaff } from '../hooks/useStaff';
 
 // Компонент карточки характеристики
 function SpecCard({ icon: Icon, label, value, color = 'default' }) {
@@ -181,6 +170,7 @@ export default function CarDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { cars } = useCars();
+  const { staff } = useStaff();
   
   const car = cars.find(c => c.id === id);
   
@@ -197,7 +187,7 @@ export default function CarDetail() {
   }
 
   const statusInfo = getStatusInfo(car.status);
-  const client = car.managerName ? clients.find(c => c.name === car.managerName) : null;
+  const client = car.managerPassport ? staff.find(s => s.passportNumber === car.managerPassport) : null;
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -227,9 +217,6 @@ export default function CarDetail() {
           </Button>
           <Button variant="bordered" startContent={<Share2 size={16} />}>
             Поделиться
-          </Button>
-          <Button color="primary" startContent={<Edit size={16} />}>
-            Редактировать
           </Button>
         </div>
       </div>
@@ -316,19 +303,11 @@ export default function CarDetail() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-default-500 mb-1">Дата покупки</p>
-                  <p className="font-medium">{formatDate(car.purchaseDate)}</p>
-                </div>
-                <div>
-                  <p className="text-default-500 mb-1">Дата прибытия</p>
-                  <p className="font-medium">{formatDate(car.arrivalDate)}</p>
+                  <p className="font-medium">{formatDate(car.createdAt)}</p>
                 </div>
                 <div>
                   <p className="text-default-500 mb-1">Менеджер</p>
                   <p className="font-medium">{car.managerName || 'Не назначен'}</p>
-                </div>
-                <div>
-                  <p className="text-default-500 mb-1">Цена в вонах</p>
-                  <p className="font-medium">₩{car.purchasePriceKRW?.toLocaleString()}</p>
                 </div>
               </div>
             </CardBody>
@@ -355,7 +334,7 @@ export default function CarDetail() {
                   />
                   <div>
                     <p className="font-semibold">{client.name}</p>
-                    <p className="text-sm text-default-500">{client.city}</p>
+                    <p className="text-sm text-default-500">ИНН: {client.passportNumber}</p>
                   </div>
                 </div>
                 
@@ -369,10 +348,6 @@ export default function CarDetail() {
                   <div className="flex items-center gap-3">
                     <Mail size={16} className="text-default-400" />
                     <span className="text-sm">{client.email}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <MapPin size={16} className="text-default-400" />
-                    <span className="text-sm">{client.city}</span>
                   </div>
                 </div>
                 
