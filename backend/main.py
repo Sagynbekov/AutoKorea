@@ -1,17 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import firebase_admin
-from firebase_admin import credentials, firestore
+from app.config.firebase import initialize_firebase
+from app.routes import staff_router, car_router
 
-# Initialize Firebase Admin SDK
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-
-# Create Firestore client
-db = firestore.client()
+# Initialize Firebase
+initialize_firebase()
 
 # Create FastAPI app
-app = FastAPI()
+app = FastAPI(
+    title="AutoKorea API",
+    description="API for AutoKorea car dealership management system",
+    version="1.0.0"
+)
 
 # Configure CORS
 app.add_middleware(
@@ -22,7 +22,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Test route
+# Include routers
+app.include_router(staff_router)
+app.include_router(car_router)
+
+# Health check route
 @app.get("/")
 def read_root():
-    return {"status": "Server is running", "db_connected": True}
+    return {
+        "status": "Server is running",
+        "db_connected": True,
+        "version": "1.0.0"
+    }
