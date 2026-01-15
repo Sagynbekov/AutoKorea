@@ -43,6 +43,7 @@ import {
   calculateProfit,
   calculateTotalCost,
 } from '../data/mockData';
+import { useCars } from '../hooks/useCars';
 
 // Компонент карточки характеристики
 function SpecCard({ icon: Icon, label, value, color = 'default' }) {
@@ -102,16 +103,22 @@ function StatusProgress({ currentStatus }) {
 
 // Компонент финансовой карточки
 function FinanceCard({ car }) {
-  const totalCost = calculateTotalCost(car);
-  const profit = calculateProfit(car);
-  const margin = ((profit / totalCost) * 100).toFixed(1);
+  const purchasePrice = car.purchasePrice || 0;
+  const deliveryCost = car.deliveryCost || 0;
+  const customsCost = car.customsCost || 0;
+  const repairCost = car.repairCost || 0;
+  const otherCost = car.otherCost || 0;
+  const totalCost = purchasePrice + deliveryCost + customsCost + repairCost + otherCost;
+  const sellingPrice = car.sellingPrice || 0;
+  const profit = sellingPrice - totalCost;
+  const margin = totalCost > 0 ? ((profit / totalCost) * 100).toFixed(1) : '0.0';
 
   const expenses = [
-    { label: 'Закупка авто', amount: car.purchasePrice, percentage: (car.purchasePrice / totalCost * 100).toFixed(0) },
-    { label: 'Доставка', amount: car.shippingCost, percentage: (car.shippingCost / totalCost * 100).toFixed(0) },
-    { label: 'Растаможка', amount: car.customsCost, percentage: (car.customsCost / totalCost * 100).toFixed(0) },
-    { label: 'Ремонт', amount: car.repairCost, percentage: (car.repairCost / totalCost * 100).toFixed(0) },
-    { label: 'Прочее', amount: car.additionalCost, percentage: (car.additionalCost / totalCost * 100).toFixed(0) },
+    { label: 'Закупка авто', amount: purchasePrice, percentage: totalCost > 0 ? (purchasePrice / totalCost * 100).toFixed(0) : 0 },
+    { label: 'Доставка', amount: deliveryCost, percentage: totalCost > 0 ? (deliveryCost / totalCost * 100).toFixed(0) : 0 },
+    { label: 'Растаможка', amount: customsCost, percentage: totalCost > 0 ? (customsCost / totalCost * 100).toFixed(0) : 0 },
+    { label: 'Ремонт', amount: repairCost, percentage: totalCost > 0 ? (repairCost / totalCost * 100).toFixed(0) : 0 },
+    { label: 'Прочее', amount: otherCost, percentage: totalCost > 0 ? (otherCost / totalCost * 100).toFixed(0) : 0 },
   ];
 
   return (
@@ -173,8 +180,9 @@ function FinanceCard({ car }) {
 export default function CarDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { cars } = useCars();
   
-  const car = cars.find(c => c.id === parseInt(id));
+  const car = cars.find(c => c.id === id);
   
   if (!car) {
     return (
@@ -189,7 +197,7 @@ export default function CarDetail() {
   }
 
   const statusInfo = getStatusInfo(car.status);
-  const client = car.client ? clients.find(c => c.name === car.client) : null;
+  const client = car.managerName ? clients.find(c => c.name === car.managerName) : null;
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -261,10 +269,26 @@ export default function CarDetail() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <SpecCard icon={Calendar} label="Год выпуска" value={car.year} color="primary" />
                 <SpecCard icon={Gauge} label="Пробег" value={`${car.mileage.toLocaleString()} км`} color="warning" />
-                <SpecCard icon={Fuel} label="Двигатель" value={`${car.engineVolume} ${car.engineType}`} color="success" />
+                <SpecCard icon={Fuel} label="Двигатель" value={`${car.engineVolume} ${car.fuel}`} color="success" />
                 <SpecCard icon={Settings} label="КПП" value={car.transmission} color="secondary" />
                 <SpecCard icon={Car} label="Привод" value={car.drive} color="primary" />
-                <SpecCard icon={Package} label="Цвет" value={car.color} color="default" />
+                <div className="flex items-center gap-3 p-3 bg-default-50 rounded-lg">
+                  <div className="p-2 rounded-lg bg-default/10">
+                    <Package size={18} className="text-default-400" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div>
+                      <p className="text-xs text-default-500">Цвет</p>
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-6 h-6 rounded border-2 border-default-300"
+                          style={{ backgroundColor: car.color }}
+                        />
+                        <p className="font-medium text-sm">{car.color}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardBody>
           </Card>
@@ -300,7 +324,7 @@ export default function CarDetail() {
                 </div>
                 <div>
                   <p className="text-default-500 mb-1">Менеджер</p>
-                  <p className="font-medium">{car.manager}</p>
+                  <p className="font-medium">{car.managerName || 'Не назначен'}</p>
                 </div>
                 <div>
                   <p className="text-default-500 mb-1">Цена в вонах</p>

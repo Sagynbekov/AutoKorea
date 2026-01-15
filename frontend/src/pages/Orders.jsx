@@ -158,7 +158,7 @@ export default function Orders() {
       case 'price':
         return <p className="font-semibold">{formatCurrency(order.sellingPrice)}</p>;
       case 'date':
-        return <span className="text-sm">{formatDate(order.purchaseDate)}</span>;
+        return <span className="text-sm">{formatDate(order.createdAt || order.purchaseDate)}</span>;
       case 'actions':
         return (
           <Dropdown placement="bottom-end">

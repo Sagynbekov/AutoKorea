@@ -222,10 +222,10 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите тип топлива',
               options: [
-                { value: 'gasoline', label: 'Бензин' },
-                { value: 'diesel', label: 'Дизель' },
-                { value: 'hybrid', label: 'Гибрид' },
-                { value: 'electric', label: 'Электро' },
+                { value: 'Бензин', label: 'Бензин' },
+                { value: 'Дизель', label: 'Дизель' },
+                { value: 'Гибрид', label: 'Гибрид' },
+                { value: 'Электро', label: 'Электро' },
               ],
             },
             {
@@ -235,10 +235,10 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите тип коробки',
               options: [
-                { value: 'automatic', label: 'Автомат' },
-                { value: 'manual', label: 'Механика' },
-                { value: 'robot', label: 'Робот' },
-                { value: 'cvt', label: 'Вариатор' },
+                { value: 'Автомат', label: 'Автомат' },
+                { value: 'Механика', label: 'Механика' },
+                { value: 'Робот', label: 'Робот' },
+                { value: 'Вариатор', label: 'Вариатор' },
               ],
             },
             {
@@ -248,9 +248,9 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите тип привода',
               options: [
-                { value: 'fwd', label: 'Передний' },
-                { value: 'rwd', label: 'Задний' },
-                { value: 'awd', label: 'Полный' },
+                { value: 'Передний', label: 'Передний' },
+                { value: 'Задний', label: 'Задний' },
+                { value: 'Полный', label: 'Полный' },
               ],
             },
             {
@@ -260,8 +260,8 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите расположение руля',
               options: [
-                { value: 'left', label: 'Слева' },
-                { value: 'right', label: 'Справа' },
+                { value: 'Слева', label: 'Слева' },
+                { value: 'Справа', label: 'Справа' },
               ],
             },
             {
@@ -271,13 +271,13 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите состояние',
               options: [
-                { value: 'excellent', label: 'Отличное' },
-                { value: 'good', label: 'Хорошее' },
-                { value: 'average', label: 'Среднее' },
-                { value: 'damaged', label: 'Битая' },
+                { value: 'Отличное', label: 'Отличное' },
+                { value: 'Хорошее', label: 'Хорошее' },
+                { value: 'Среднее', label: 'Среднее' },
+                { value: 'Битая', label: 'Битая' },
               ],
             },
-            ...(formData.condition === 'damaged' ? [
+            ...(formData.condition === 'Битая' ? [
               {
                 name: 'carfax',
                 label: 'Карфакс (описание повреждений)',
@@ -446,10 +446,10 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите тип топлива',
               options: [
-                { value: 'gasoline', label: 'Бензин' },
-                { value: 'diesel', label: 'Дизель' },
-                { value: 'hybrid', label: 'Гибрид' },
-                { value: 'electric', label: 'Электро' },
+                { value: 'Бензин', label: 'Бензин' },
+                { value: 'Дизель', label: 'Дизель' },
+                { value: 'Гибрид', label: 'Гибрид' },
+                { value: 'Электро', label: 'Электро' },
               ],
             },
             {
@@ -459,10 +459,10 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите тип коробки',
               options: [
-                { value: 'automatic', label: 'Автомат' },
-                { value: 'manual', label: 'Механика' },
-                { value: 'robot', label: 'Робот' },
-                { value: 'cvt', label: 'Вариатор' },
+                { value: 'Автомат', label: 'Автомат' },
+                { value: 'Механика', label: 'Механика' },
+                { value: 'Робот', label: 'Робот' },
+                { value: 'Вариатор', label: 'Вариатор' },
               ],
             },
             {
@@ -472,9 +472,9 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите тип привода',
               options: [
-                { value: 'fwd', label: 'Передний' },
-                { value: 'rwd', label: 'Задний' },
-                { value: 'awd', label: 'Полный' },
+                { value: 'Передний', label: 'Передний' },
+                { value: 'Задний', label: 'Задний' },
+                { value: 'Полный', label: 'Полный' },
               ],
             },
             {
@@ -484,8 +484,8 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите расположение руля',
               options: [
-                { value: 'left', label: 'Слева' },
-                { value: 'right', label: 'Справа' },
+                { value: 'Слева', label: 'Слева' },
+                { value: 'Справа', label: 'Справа' },
               ],
             },
             {
@@ -495,13 +495,13 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               required: true,
               placeholder: 'Выберите состояние',
               options: [
-                { value: 'excellent', label: 'Отличное' },
-                { value: 'good', label: 'Хорошее' },
-                { value: 'average', label: 'Среднее' },
-                { value: 'damaged', label: 'Битая' },
+                { value: 'Отличное', label: 'Отличное' },
+                { value: 'Хорошее', label: 'Хорошее' },
+                { value: 'Среднее', label: 'Среднее' },
+                { value: 'Битая', label: 'Битая' },
               ],
             },
-            ...(formData.condition === 'damaged' ? [
+            ...(formData.condition === 'Битая' ? [
               {
                 name: 'carfax',
                 label: 'Карфакс (описание повреждений)',
