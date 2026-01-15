@@ -140,9 +140,6 @@ export default function Calculator() {
           <Button variant="bordered" startContent={<RefreshCw size={16} />} onPress={resetForm}>
             Сбросить
           </Button>
-          <Button color="primary" startContent={<Save size={16} />}>
-            Сохранить расчет
-          </Button>
         </div>
       </div>
 

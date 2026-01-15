@@ -36,14 +36,12 @@ const menuItems = [
     section: 'Аналитика',
     items: [
       { path: '/reports', icon: FileText, label: 'Отчеты' },
-      { path: '/analytics', icon: TrendingUp, label: 'Аналитика' },
     ],
   },
   {
     section: 'Система',
     items: [
       { path: '/settings', icon: Settings, label: 'Настройки' },
-      { path: '/help', icon: HelpCircle, label: 'Помощь' },
     ],
   },
 ];

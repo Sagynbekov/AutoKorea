@@ -8,9 +8,7 @@ import Finance from './pages/Finance';
 import Calculator from './pages/Calculator';
 import Orders from './pages/Orders';
 import Reports from './pages/Reports';
-import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
-import Help from './pages/Help';
 
 function App() {
   return (
@@ -24,9 +22,7 @@ function App() {
         <Route path="calculator" element={<Calculator />} />
         <Route path="orders" element={<Orders />} />
         <Route path="reports" element={<Reports />} />
-        <Route path="analytics" element={<Analytics />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="help" element={<Help />} />
       </Route>
     </Routes>
   );

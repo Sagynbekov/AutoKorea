@@ -27,6 +27,11 @@ class CarService:
             manager=car_data.manager,
             location=car_data.location,
             images=car_data.images,
+            shipping_cost=car_data.shipping_cost,
+            customs_cost=car_data.customs_cost,
+            repair_cost=car_data.repair_cost,
+            additional_cost=car_data.additional_cost,
+            sold_date=car_data.sold_date,
         )
         
         doc_ref = self.collection.document()
@@ -86,7 +91,12 @@ class CarService:
         field_mapping = {
             "purchase_price": "purchasePrice",
             "selling_price": "sellingPrice",
-            "arrival_date": "arrivalDate"
+            "arrival_date": "arrivalDate",
+            "shipping_cost": "shippingCost",
+            "customs_cost": "customsCost",
+            "repair_cost": "repairCost",
+            "additional_cost": "additionalCost",
+            "sold_date": "soldDate",
         }
         
         for key, value in update_data.items():

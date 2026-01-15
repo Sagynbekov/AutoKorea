@@ -36,14 +36,8 @@ import {
   PiggyBank,
   Receipt,
 } from 'lucide-react';
-import {
-  transactions,
-  dashboardStats,
-  expensesByCategory,
-  salesByMonth,
-  formatCurrency,
-  formatDate,
-} from '../data/mockData';
+import { formatCurrency, formatDate } from '../data/mockData';
+import { useCars } from '../hooks/useCars';
 
 // Компонент финансовой карточки
 function FinanceStatCard({ title, value, change, changeType, icon: Icon, color }) {
@@ -93,7 +87,37 @@ function FinanceStatCard({ title, value, change, changeType, icon: Icon, color }
 }
 
 // Компонент структуры расходов
-function ExpenseBreakdown() {
+function ExpenseBreakdown({ cars }) {
+  // Вычисляем структуру расходов из данных автомобилей
+  const expensesByCategory = useMemo(() => {
+    const expenses = {
+      'Покупка автомобилей': 0,
+      'Доставка': 0,
+      'Растаможка': 0,
+      'Ремонт': 0,
+      'Дополнительные расходы': 0,
+    };
+
+    cars.forEach(car => {
+      expenses['Покупка автомобилей'] += car.purchasePrice || 0;
+      expenses['Доставка'] += car.shippingCost || 0;
+      expenses['Растаможка'] += car.customsCost || 0;
+      expenses['Ремонт'] += car.repairCost || 0;
+      expenses['Дополнительные расходы'] += car.additionalCost || 0;
+    });
+
+    const totalExpenses = Object.values(expenses).reduce((acc, val) => acc + val, 0);
+    
+    return Object.entries(expenses)
+      .map(([category, amount]) => ({
+        category,
+        amount,
+        percentage: totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0
+      }))
+      .filter(expense => expense.amount > 0)
+      .sort((a, b) => b.amount - a.amount);
+  }, [cars]);
+
   return (
     <Card className="border border-default-200">
       <CardHeader>
@@ -103,47 +127,93 @@ function ExpenseBreakdown() {
         </div>
       </CardHeader>
       <CardBody className="space-y-4">
-        {expensesByCategory.map((expense) => (
-          <div key={expense.category}>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm">{expense.category}</span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">{formatCurrency(expense.amount)}</span>
-                <Chip size="sm" variant="flat">{expense.percentage}%</Chip>
+        {expensesByCategory.length > 0 ? (
+          expensesByCategory.map((expense) => (
+            <div key={expense.category}>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm">{expense.category}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{formatCurrency(expense.amount)}</span>
+                  <Chip size="sm" variant="flat">{expense.percentage}%</Chip>
+                </div>
               </div>
+              <Progress 
+                value={expense.percentage} 
+                color={
+                  expense.percentage > 50 ? 'primary' : 
+                  expense.percentage > 20 ? 'secondary' : 
+                  'success'
+                }
+                size="sm"
+              />
             </div>
-            <Progress 
-              value={expense.percentage} 
-              color={
-                expense.percentage > 50 ? 'primary' : 
-                expense.percentage > 20 ? 'secondary' : 
-                'success'
-              }
-              size="sm"
-            />
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-sm text-default-500 text-center py-4">Нет данных о расходах</p>
+        )}
       </CardBody>
     </Card>
   );
 }
 
 // Компонент графика доходов/расходов
-function RevenueChart() {
-  const totalIncome = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
-  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((acc, t) => acc + t.amount, 0);
-  const balance = totalIncome - totalExpense;
+function RevenueChart({ cars }) {
+  // Вычисляем доходы и расходы из данных автомобилей
+  const { totalIncome, totalExpense } = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+
+    cars.forEach(car => {
+      // Расходы - все затраты на машину
+      expense += (car.purchasePrice || 0) + 
+                 (car.shippingCost || 0) + 
+                 (car.customsCost || 0) + 
+                 (car.repairCost || 0) + 
+                 (car.additionalCost || 0);
+      
+      // Доходы - только проданные машины
+      if (car.status === 'sold' && car.sellingPrice) {
+        income += car.sellingPrice;
+      }
+    });
+
+    return { totalIncome: income, totalExpense: expense };
+  }, [cars]);
+
+  // Группируем данные по месяцам для графика
+  const salesByMonth = useMemo(() => {
+    const monthsData = {};
+    
+    cars.forEach(car => {
+      if (car.status === 'sold' && car.soldDate) {
+        const date = new Date(car.soldDate);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const monthName = date.toLocaleDateString('ru-RU', { month: 'short' });
+        
+        if (!monthsData[monthKey]) {
+          monthsData[monthKey] = { month: monthName, revenue: 0, date: date };
+        }
+        monthsData[monthKey].revenue += car.sellingPrice || 0;
+      }
+    });
+
+    // Сортируем по дате и берем последние 6 месяцев
+    return Object.values(monthsData)
+      .sort((a, b) => a.date - b.date)
+      .slice(-6)
+      .map(({ month, revenue }) => ({ month, revenue }));
+  }, [cars]);
 
   return (
     <Card className="border border-default-200">
       <CardHeader>
         <div>
-          <h3 className="text-lg font-semibold">Баланс</h3>
-          <p className="text-sm text-default-500">Доходы и расходы</p>
+          <h3 className="text-lg font-semibold">Доходы и расходы</h3>
+          <p className="text-sm text-default-500">Финансовая сводка</p>
         </div>
       </CardHeader>
       <CardBody>
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="text-center p-4 bg-success/10 rounded-lg">
             <ArrowUpRight className="mx-auto mb-2 text-success" size={24} />
             <p className="text-sm text-default-500 mb-1">Доходы</p>
@@ -154,49 +224,132 @@ function RevenueChart() {
             <p className="text-sm text-default-500 mb-1">Расходы</p>
             <p className="text-xl font-bold text-danger">{formatCurrency(totalExpense)}</p>
           </div>
-          <div className={`text-center p-4 rounded-lg ${balance >= 0 ? 'bg-primary/10' : 'bg-warning/10'}`}>
-            <Wallet className={`mx-auto mb-2 ${balance >= 0 ? 'text-primary' : 'text-warning'}`} size={24} />
-            <p className="text-sm text-default-500 mb-1">Баланс</p>
-            <p className={`text-xl font-bold ${balance >= 0 ? 'text-primary' : 'text-warning'}`}>
-              {formatCurrency(balance)}
-            </p>
-          </div>
         </div>
 
         {/* Mini chart */}
-        <div className="px-4">
-          <div className="h-32 flex items-end justify-around gap-2 mb-2">
-            {salesByMonth.map((month, index) => {
-              const maxRevenue = Math.max(...salesByMonth.map(s => s.revenue));
-              const heightPx = (month.revenue / maxRevenue) * 120; // 120px max height
-              return (
-                <div key={month.month} className="flex-1 flex flex-col items-center gap-1">
-                  <div 
-                    className="w-full bg-primary rounded-t transition-all hover:bg-primary/80 cursor-pointer"
-                    style={{ height: `${heightPx}px`, minHeight: '4px' }}
-                    title={`${month.month}: ${formatCurrency(month.revenue)}`}
-                  />
+        {salesByMonth.length > 0 && (
+          <div className="px-4">
+            <div className="h-32 flex items-end justify-around gap-2 mb-2">
+              {salesByMonth.map((month, index) => {
+                const maxRevenue = Math.max(...salesByMonth.map(s => s.revenue));
+                const heightPx = maxRevenue > 0 ? (month.revenue / maxRevenue) * 120 : 4;
+                return (
+                  <div key={index} className="flex-1 flex flex-col items-center gap-1">
+                    <div 
+                      className="w-full bg-primary rounded-t transition-all hover:bg-primary/80 cursor-pointer"
+                      style={{ height: `${heightPx}px`, minHeight: '4px' }}
+                      title={`${month.month}: ${formatCurrency(month.revenue)}`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-around gap-2">
+              {salesByMonth.map((month, index) => (
+                <div key={index} className="flex-1 text-center">
+                  <span className="text-xs text-default-500">{month.month}</span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
-          <div className="flex items-center justify-around gap-2">
-            {salesByMonth.map((month) => (
-              <div key={month.month} className="flex-1 text-center">
-                <span className="text-xs text-default-500">{month.month}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </CardBody>
     </Card>
   );
 }
 
 // Таблица транзакций
-function TransactionsTable() {
+function TransactionsTable({ cars }) {
   const [typeFilter, setTypeFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+
+  // Генерируем транзакции из данных автомобилей
+  const transactions = useMemo(() => {
+    const allTransactions = [];
+    let transactionId = 1;
+
+    cars.forEach(car => {
+      // Покупка автомобиля (расход)
+      if (car.purchasePrice && car.purchasePrice > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'expense',
+          category: 'Покупка автомобиля',
+          description: `${car.brand} ${car.model} ${car.year} (${car.vin})`,
+          amount: car.purchasePrice,
+          date: car.purchaseDate || new Date().toISOString().split('T')[0],
+          carId: car.id
+        });
+      }
+
+      // Доставка (расход)
+      if (car.shippingCost && car.shippingCost > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'expense',
+          category: 'Доставка',
+          description: `Доставка ${car.brand} ${car.model} (${car.vin})`,
+          amount: car.shippingCost,
+          date: car.purchaseDate || new Date().toISOString().split('T')[0],
+          carId: car.id
+        });
+      }
+
+      // Растаможка (расход)
+      if (car.customsCost && car.customsCost > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'expense',
+          category: 'Растаможка',
+          description: `Растаможка ${car.brand} ${car.model} (${car.vin})`,
+          amount: car.customsCost,
+          date: car.arrivalDate || car.purchaseDate || new Date().toISOString().split('T')[0],
+          carId: car.id
+        });
+      }
+
+      // Ремонт (расход)
+      if (car.repairCost && car.repairCost > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'expense',
+          category: 'Ремонт',
+          description: `Ремонт ${car.brand} ${car.model} (${car.vin})`,
+          amount: car.repairCost,
+          date: car.arrivalDate || car.purchaseDate || new Date().toISOString().split('T')[0],
+          carId: car.id
+        });
+      }
+
+      // Дополнительные расходы (расход)
+      if (car.additionalCost && car.additionalCost > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'expense',
+          category: 'Дополнительные расходы',
+          description: `Дополнительные расходы ${car.brand} ${car.model} (${car.vin})`,
+          amount: car.additionalCost,
+          date: car.arrivalDate || car.purchaseDate || new Date().toISOString().split('T')[0],
+          carId: car.id
+        });
+      }
+
+      // Продажа автомобиля (доход)
+      if (car.status === 'sold' && car.sellingPrice && car.sellingPrice > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'income',
+          category: 'Продажа автомобиля',
+          description: `Продажа ${car.brand} ${car.model} ${car.year}${car.client ? ` - ${car.client}` : ''}`,
+          amount: car.sellingPrice,
+          date: car.soldDate || car.arrivalDate || car.purchaseDate || new Date().toISOString().split('T')[0],
+          carId: car.id
+        });
+      }
+    });
+
+    return allTransactions;
+  }, [cars]);
 
   const filteredTransactions = useMemo(() => {
     let filtered = [...transactions];
@@ -207,9 +360,11 @@ function TransactionsTable() {
       filtered = filtered.filter(t => t.category === categoryFilter);
     }
     return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [typeFilter, categoryFilter]);
+  }, [transactions, typeFilter, categoryFilter]);
 
-  const categories = [...new Set(transactions.map(t => t.category))];
+  const categories = useMemo(() => {
+    return [...new Set(transactions.map(t => t.category))];
+  }, [transactions]);
 
   const columns = [
     { key: 'date', label: 'Дата' },
@@ -308,7 +463,7 @@ function TransactionsTable() {
               <TableColumn key={column.key}>{column.label}</TableColumn>
             )}
           </TableHeader>
-          <TableBody items={filteredTransactions}>
+          <TableBody items={filteredTransactions} emptyContent="Нет транзакций">
             {(transaction) => (
               <TableRow key={transaction.id}>
                 {(columnKey) => (
@@ -326,14 +481,140 @@ function TransactionsTable() {
 export default function Finance() {
   const [dateRange, setDateRange] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('all');
+  
+  // Получаем данные автомобилей
+  const { cars, loading } = useCars();
+
+  // Фильтруем автомобили по периоду
+  const filteredCars = useMemo(() => {
+    if (selectedPeriod === 'all') {
+      return cars;
+    }
+
+    // Получаем диапазон дат для фильтрации
+    let startDate = null;
+    let endDate = new Date();
+    endDate.setHours(23, 59, 59, 999);
+
+    if (selectedPeriod === 'today') {
+      startDate = new Date();
+      startDate.setHours(0, 0, 0, 0);
+    } else if (selectedPeriod === 'week') {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - 7);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (selectedPeriod === 'month') {
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 1);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (selectedPeriod === 'year') {
+      startDate = new Date();
+      startDate.setFullYear(startDate.getFullYear() - 1);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (selectedPeriod === 'custom' && dateRange?.start && dateRange?.end) {
+      startDate = new Date(dateRange.start.year, dateRange.start.month - 1, dateRange.start.day, 0, 0, 0, 0);
+      endDate = new Date(dateRange.end.year, dateRange.end.month - 1, dateRange.end.day, 23, 59, 59, 999);
+    } else {
+      return cars; // Если не удалось определить период, показываем все
+    }
+
+    // Функция для парсинга даты
+    const parseDate = (dateString) => {
+      if (!dateString) return null;
+      
+      // Если это объект Timestamp из Firebase
+      if (dateString?.toDate) {
+        return dateString.toDate();
+      }
+      
+      // Если это строка
+      if (typeof dateString === 'string') {
+        // Формат YYYY-MM-DD
+        if (dateString.includes('-')) {
+          const [year, month, day] = dateString.split('-').map(Number);
+          return new Date(year, month - 1, day);
+        }
+        // Пробуем стандартный парсинг
+        return new Date(dateString);
+      }
+      
+      // Если это уже Date объект
+      if (dateString instanceof Date) {
+        return dateString;
+      }
+      
+      return null;
+    };
+
+    // Проверяем попадает ли дата в диапазон
+    const isInRange = (dateString) => {
+      const date = parseDate(dateString);
+      if (!date || isNaN(date.getTime())) return false;
+      
+      date.setHours(0, 0, 0, 0);
+      return date >= startDate && date <= endDate;
+    };
+
+    // Фильтруем автомобили
+    return cars.filter(car => {
+      const dates = [
+        car.purchaseDate,
+        car.arrivalDate,
+        car.soldDate,
+      ].filter(Boolean);
+
+      if (dates.length === 0) return false;
+      
+      // Если хотя бы одна дата попадает в период
+      return dates.some(date => isInRange(date));
+    });
+  }, [cars, selectedPeriod, dateRange]);
+
+  // Вычисляем финансовую статистику
+  const stats = useMemo(() => {
+    let totalRevenue = 0; // Общая выручка от продаж
+    let totalExpenses = 0; // Все расходы
+    
+    filteredCars.forEach(car => {
+      // Расходы на каждый автомобиль
+      totalExpenses += (car.purchasePrice || 0) + 
+                      (car.shippingCost || 0) + 
+                      (car.customsCost || 0) + 
+                      (car.repairCost || 0) + 
+                      (car.additionalCost || 0);
+      
+      // Выручка только от проданных машин
+      if (car.status === 'sold' && car.sellingPrice) {
+        totalRevenue += car.sellingPrice;
+      }
+    });
+
+    const netProfit = totalRevenue - totalExpenses; // Чистая прибыль
+
+    return {
+      totalRevenue,
+      netProfit,
+      totalExpenses
+    };
+  }, [filteredCars]);
 
   const handlePeriodChange = (period) => {
     setSelectedPeriod(period);
-    // Здесь можно добавить логику для установки соответствующего диапазона дат
     if (period !== 'custom') {
       setDateRange(null);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-default-500">Загрузка финансовых данных...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -417,30 +698,30 @@ export default function Finance() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FinanceStatCard
           title="Общая выручка"
-          value={formatCurrency(dashboardStats.totalRevenue)}
-          change="+12.5%"
+          value={formatCurrency(stats.totalRevenue)}
+          change={stats.totalRevenue > 0 ? "+12.5%" : null}
           changeType="positive"
           icon={DollarSign}
           color="success"
         />
         <FinanceStatCard
           title="Чистая прибыль"
-          value={formatCurrency(dashboardStats.totalProfit)}
-          change="+8.2%"
-          changeType="positive"
+          value={formatCurrency(stats.netProfit)}
+          change={stats.netProfit > 0 ? "+8.2%" : stats.netProfit < 0 ? "-8.2%" : null}
+          changeType={stats.netProfit >= 0 ? "positive" : "negative"}
           icon={TrendingUp}
-          color="primary"
+          color={stats.netProfit >= 0 ? "primary" : "danger"}
         />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RevenueChart />
-        <ExpenseBreakdown />
+        <RevenueChart cars={filteredCars} />
+        <ExpenseBreakdown cars={filteredCars} />
       </div>
 
       {/* Transactions */}
-      <TransactionsTable />
+      <TransactionsTable cars={filteredCars} />
     </div>
   );
 }

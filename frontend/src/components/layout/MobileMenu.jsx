@@ -22,9 +22,7 @@ const menuItems = [
   { path: '/finance', icon: Wallet, label: 'Финансы' },
   { path: '/calculator', icon: Calculator, label: 'Калькулятор' },
   { path: '/reports', icon: FileText, label: 'Отчеты' },
-  { path: '/analytics', icon: TrendingUp, label: 'Аналитика' },
   { path: '/settings', icon: Settings, label: 'Настройки' },
-  { path: '/help', icon: HelpCircle, label: 'Помощь' },
 ];
 
 export default function MobileMenu({ isOpen, onClose }) {
