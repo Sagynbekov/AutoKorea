@@ -13,6 +13,7 @@ import {
   Autocomplete,
   AutocompleteItem,
 } from '@heroui/react';
+import { Plus } from 'lucide-react';
 import { useStaff } from '../hooks/useStaff';
 import { carService } from '../services/carService';
 
@@ -30,6 +31,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
   const [searchValue, setSearchValue] = useState('');
   const [carSearchValue, setCarSearchValue] = useState('');
   const [currentStep, setCurrentStep] = useState(1);
+  const [selectedPhotos, setSelectedPhotos] = useState([]);
 
   // Вычисление себестоимости
   const totalCost = useMemo(() => {
@@ -55,6 +57,38 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
   const handleInputChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  // Обработка выбора фотографий
+  const handlePhotoSelect = (e) => {
+    const files = Array.from(e.target.files);
+    const newPhotos = files.map(file => ({
+      id: Math.random().toString(36).substr(2, 9),
+      file,
+      preview: URL.createObjectURL(file),
+      name: file.name,
+    }));
+    setSelectedPhotos(prev => [...prev, ...newPhotos]);
+  };
+
+  // Удаление фотографии
+  const handlePhotoRemove = (photoId) => {
+    setSelectedPhotos(prev => {
+      const photo = prev.find(p => p.id === photoId);
+      if (photo) {
+        URL.revokeObjectURL(photo.preview);
+      }
+      return prev.filter(p => p.id !== photoId);
+    });
+  };
+
+  // Очистка всех фото при размонтировании
+  useEffect(() => {
+    return () => {
+      selectedPhotos.forEach(photo => {
+        URL.revokeObjectURL(photo.preview);
+      });
+    };
+  }, [selectedPhotos]);
 
   // Форматирование телефона с автоматическим +996
   const handlePhoneChange = (value) => {
@@ -89,8 +123,14 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Если это первый шаг для car/order, переходим на второй шаг вместо отправки
-    if ((type === 'car' || type === 'order') && currentStep === 1) {
+    // Для заказов: 3 шага (данные -> фото -> цены)
+    // Для авто: 2 шага (данные -> цены)
+    if (type === 'order' && currentStep < 3) {
+      setCurrentStep(prev => prev + 1);
+      return;
+    }
+    
+    if (type === 'car' && currentStep === 1) {
       setCurrentStep(2);
       return;
     }
@@ -104,7 +144,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
           client => client.passportNumber === formData.clientPassport
         );
         
-        // Для заказов сохраняем напрямую в Firebase в коллекцию Orders
+        // Для заказов сохраняем напрямую в Firebase в коллекцию Orders с фото
         const orderData = {
           brand: formData.brand,
           model: formData.model,
@@ -128,10 +168,11 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
           managerName: selectedClient?.name || '',
           managerPassport: formData.clientPassport,
           status: 'in_korea',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
         };
-        await carService.createCar(orderData);
+        
+        // Создаем заказ с фотографиями
+        await carService.createCarWithPhotos(orderData, selectedPhotos);
+        
         // Вызываем onSubmit для обновления списка в родительском компоненте
         if (onSubmit) {
           await onSubmit(formData);
@@ -140,6 +181,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
         await onSubmit(formData);
       }
       setFormData({});
+      setSelectedPhotos([]);
       setCurrentStep(1);
       onClose();
     } catch (error) {
@@ -154,6 +196,10 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
     setSearchValue('');
     setCarSearchValue('');
     setCurrentStep(1);
+    selectedPhotos.forEach(photo => {
+      URL.revokeObjectURL(photo.preview);
+    });
+    setSelectedPhotos([]);
     onClose();
   };
 
@@ -287,7 +333,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               },
             ] : []),
           ],
-          step2Fields: [
+          step3Fields: [
             {
               name: 'purchaseCost',
               label: 'Закупка авто ($)',
@@ -511,7 +557,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               },
             ] : []),
           ],
-          step2Fields: [
+          step3Fields: [
             {
               name: 'purchaseCost',
               label: 'Закупка авто ($)',
@@ -741,9 +787,10 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
       e.preventDefault();
       e.stopPropagation();
     }
-    if ((type === 'car' || type === 'order') && currentStep === 1) {
+    if (type === 'order' && currentStep < 3) {
+      setCurrentStep(prev => prev + 1);
+    } else if (type === 'car' && currentStep === 1) {
       setCurrentStep(2);
-    } else {
     }
   };
 
@@ -754,7 +801,16 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
   };
 
   // Определяем какие поля показывать
-  const fieldsToShow = (type === 'car' || type === 'order') && currentStep === 2 ? config.step2Fields : config.fields;
+  const fieldsToShow = useMemo(() => {
+    if (type === 'car' && currentStep === 2) {
+      return config.step2Fields || config.step3Fields;
+    }
+    if (type === 'order') {
+      if (currentStep === 2) return []; // Фото шаг
+      if (currentStep === 3) return config.step3Fields;
+    }
+    return config.fields;
+  }, [type, currentStep, config]);
   
 
   return (
@@ -775,38 +831,122 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
           <>
             <ModalHeader className="flex flex-col gap-1 sticky top-0 bg-content1 z-10">
               <h2 className="text-xl font-bold">
-                {(type === 'car' || type === 'order') && currentStep === 2 ? 'Себестоимость и цена' : config.title}
+                {type === 'order' && currentStep === 2 ? 'Загрузка фотографий' :
+                 (type === 'car' && currentStep === 2) || (type === 'order' && currentStep === 3) ? 'Себестоимость и цена' :
+                 config.title}
               </h2>
-              {(type === 'car' || type === 'order') && currentStep === 2 ? (
+              {((type === 'car' && currentStep === 2) || (type === 'order' && currentStep === 3)) ? (
                 <div className="flex flex-col gap-1">
                   <p className="text-2xl font-bold text-primary">
                     Себестоимость: ${totalCost.toLocaleString()}
                   </p>
                 </div>
+              ) : type === 'order' && currentStep === 2 ? (
+                <p className="text-sm text-default-500 font-normal">
+                  Добавьте фотографии автомобиля (минимум 3)
+                </p>
               ) : (
-                (type === 'car' || type === 'order') && currentStep === 1 && (
+                (type === 'car' || type === 'order') && (
                   <p className="text-sm text-default-500 font-normal">
-                    Шаг 1 из 2
+                    Шаг {currentStep} из {type === 'order' ? 3 : 2}
                   </p>
                 )
               )}
             </ModalHeader>
             
             <ModalBody className="overflow-y-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
-                {fieldsToShow?.map((field) => (
-                  <div
-                    key={field.name}
-                    className={field.type === 'textarea' ? 'md:col-span-2' : ''}
-                  >
-                    {renderField(field)}
+              {type === 'order' && currentStep === 2 ? (
+                <div className="py-4">
+                  {/* Кнопка загрузки */}
+                  <div className="mb-4">
+                    <input
+                      type="file"
+                      id="photo-upload"
+                      multiple
+                      accept="image/*"
+                      onChange={handlePhotoSelect}
+                      className="hidden"
+                    />
+                    <label
+                      htmlFor="photo-upload"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-default-300 rounded-lg cursor-pointer hover:border-primary hover:bg-default-50 transition-colors"
+                    >
+                      <Plus size={32} className="text-default-400 mb-2" />
+                      <span className="text-sm text-default-600 font-medium">
+                        Нажмите для выбора фотографий
+                      </span>
+                      <span className="text-xs text-default-400 mt-1">
+                        Можно выбрать несколько изображений
+                      </span>
+                    </label>
                   </div>
-                ))}
-              </div>
+
+                  {/* Предпросмотр фотографий */}
+                  {selectedPhotos.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium mb-3">
+                        Выбрано фото: {selectedPhotos.length}
+                      </p>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {selectedPhotos.map((photo) => (
+                          <div
+                            key={photo.id}
+                            className="relative group aspect-square rounded-lg overflow-hidden border-2 border-default-200"
+                          >
+                            <img
+                              src={photo.preview}
+                              alt={photo.name}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <Button
+                                isIconOnly
+                                color="danger"
+                                size="sm"
+                                onPress={() => handlePhotoRemove(photo.id)}
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M18 6L6 18M6 6l12 12" />
+                                </svg>
+                              </Button>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-1">
+                              <p className="text-xs text-white truncate">
+                                {photo.name}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+                  {fieldsToShow?.map((field) => (
+                    <div
+                      key={field.name}
+                      className={field.type === 'textarea' ? 'md:col-span-2' : ''}
+                    >
+                      {renderField(field)}
+                    </div>
+                  ))}
+                </div>
+              )}
             </ModalBody>
             
             <ModalFooter className="sticky bottom-0 bg-content1 border-t border-divider z-10 gap-2">
-              {(type === 'car' || type === 'order') && currentStep === 2 && (
+              {((type === 'car' && currentStep === 2) || (type === 'order' && currentStep > 1)) && (
                 <Button
                   type="button"
                   variant="light"
@@ -825,7 +965,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               >
                 Отмена
               </Button>
-              {(type === 'car' || type === 'order') && currentStep === 1 ? (
+              {((type === 'car' && currentStep === 1) || (type === 'order' && currentStep < 3)) ? (
                 <Button
                   color="primary"
                   type="button"

@@ -10,7 +10,13 @@ import {
   where,
   limit as firestoreLimit
 } from 'firebase/firestore';
-import { db } from '../config/firebase';
+import { 
+  ref, 
+  uploadBytes, 
+  getDownloadURL, 
+  deleteObject 
+} from 'firebase/storage';
+import { db, storage } from '../config/firebase';
 
 /**
  * Service for managing cars
@@ -111,6 +117,71 @@ class CarService {
   async deleteCar(id) {
     const carDoc = doc(db, this.collectionName, id);
     await deleteDoc(carDoc);
+  }
+
+  /**
+   * Convert photo files to base64
+   * @param {Array} photos - Array of photo objects with file property
+   * @returns {Promise<Array>} - Array of photo base64 data
+   */
+  async convertPhotosToBase64(photos) {
+    const convertPromises = photos.map(async (photo) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+          resolve({
+            data: e.target.result,
+            name: photo.file.name,
+            type: photo.file.type,
+            size: photo.file.size,
+            uploadedAt: new Date().toISOString()
+          });
+        };
+        
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(photo.file);
+      });
+    });
+
+    return await Promise.all(convertPromises);
+  }
+
+  /**
+   * Delete car photo from Firebase Storage
+   * @param {string} carId - Car ID
+   * @param {string} fileName - File name to delete
+   */
+  async deleteCarPhoto(carId, fileName) {
+    const storageRef = ref(storage, `cars/${carId}/${fileName}`);
+    await deleteObject(storageRef);
+  }
+
+  /**
+   * Create car with photos
+   * @param {Object} carData - Car data
+   * @param {Array} photos - Array of photo objects
+   */
+  async createCarWithPhotos(carData, photos = []) {
+    // Convert photos to base64 if provided
+    let photoData = [];
+    if (photos.length > 0) {
+      photoData = await this.convertPhotosToBase64(photos);
+    }
+
+    // Create the car document with photos
+    const docRef = await addDoc(collection(db, this.collectionName), {
+      ...carData,
+      photos: photoData,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    });
+
+    return {
+      id: docRef.id,
+      ...carData,
+      photos: photoData
+    };
   }
 }
 

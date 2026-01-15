@@ -247,22 +247,45 @@ export default function CarDetail() {
           {/* Car Images */}
           <Card className="border border-default-200">
             <CardBody className="p-0">
-              <div className="aspect-video bg-default-100 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <Car size={80} className="text-default-300 mx-auto mb-4" />
-                  <p className="text-default-400">Фото автомобиля</p>
-                  <p className="text-sm text-default-300">Здесь будут фотографии</p>
-                </div>
+              <div className="aspect-video bg-default-100 rounded-lg flex items-center justify-center overflow-hidden">
+                {car.photos && car.photos.length > 0 ? (
+                  <img 
+                    src={car.photos[0].data} 
+                    alt={`${car.brand} ${car.model}`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <Car size={80} className="text-default-300 mx-auto mb-4" />
+                    <p className="text-default-400">Фото автомобиля</p>
+                    <p className="text-sm text-default-300">Здесь будут фотографии</p>
+                  </div>
+                )}
               </div>
               <div className="p-4 flex gap-2 overflow-x-auto">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="w-20 h-16 bg-default-100 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer hover:bg-default-200 transition-colors"
-                  >
-                    <Car size={24} className="text-default-300" />
-                  </div>
-                ))}
+                {car.photos && car.photos.length > 0 ? (
+                  car.photos.map((photo, index) => (
+                    <div
+                      key={index}
+                      className="w-20 h-16 bg-default-100 rounded-lg flex-shrink-0 overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                    >
+                      <img 
+                        src={photo.data} 
+                        alt={`${car.brand} ${car.model} - ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))
+                ) : (
+                  [1, 2, 3, 4, 5].map((i) => (
+                    <div
+                      key={i}
+                      className="w-20 h-16 bg-default-100 rounded-lg flex-shrink-0 flex items-center justify-center cursor-pointer hover:bg-default-200 transition-colors"
+                    >
+                      <Car size={24} className="text-default-300" />
+                    </div>
+                  ))
+                )}
               </div>
             </CardBody>
           </Card>
