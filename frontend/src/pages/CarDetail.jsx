@@ -6,7 +6,19 @@ import {
   CardHeader,
   Chip,
   Divider,
-  Progress
+  Progress,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell
 } from '@heroui/react';
 import {
   ArrowLeft,
@@ -171,6 +183,7 @@ export default function CarDetail() {
   const navigate = useNavigate();
   const { cars } = useCars();
   const { staff } = useStaff();
+  const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   
   const car = cars.find(c => c.id === id);
   
@@ -352,11 +365,10 @@ export default function CarDetail() {
                 </div>
                 
                 <Button 
-                  as={Link} 
-                  to={`/clients/${client.id}`}
                   variant="flat" 
                   color="primary" 
                   fullWidth
+                  onPress={onViewOpen}
                 >
                   Профиль сотрудника
                 </Button>
@@ -393,6 +405,116 @@ export default function CarDetail() {
           </Card>
         </div>
       </div>
+
+      {/* Staff Detail Modal */}
+      <Modal 
+        isOpen={isViewOpen} 
+        onClose={onViewClose} 
+        size="5xl" 
+        classNames={{ 
+          base: "rounded-2xl",
+          wrapper: "rounded-2xl",
+          backdrop: "bg-overlay/50 backdrop-opacity-disabled"
+        }}
+      >
+        <ModalContent className="rounded-2xl">
+          {client && (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <Avatar
+                    name={client.name}
+                    size="lg"
+                    className="bg-primary text-white"
+                  />
+                  <div>
+                    <h3 className="text-lg font-semibold">{client.name}</h3>
+                    <p className="text-sm text-default-500">ИНН: {client.passportNumber}</p>
+                  </div>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="p-4 bg-default-50 rounded-lg">
+                    <p className="text-sm text-default-500 mb-1">Телефон</p>
+                    <p className="font-medium">{client.phone}</p>
+                  </div>
+                  <div className="p-4 bg-default-50 rounded-lg">
+                    <p className="text-sm text-default-500 mb-1">Email</p>
+                    <p className="font-medium">{client.email}</p>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <h4 className="text-lg font-semibold mb-3">Привезенные машины</h4>
+                  <div className="overflow-x-auto">
+                    <Table 
+                      aria-label="Машины сотрудника"
+                      classNames={{
+                        wrapper: 'shadow-none border border-default-200',
+                        th: 'bg-default-100',
+                      }}
+                    >
+                      <TableHeader>
+                        <TableColumn>Машина</TableColumn>
+                        <TableColumn>VIN</TableColumn>
+                        <TableColumn>Год</TableColumn>
+                        <TableColumn>Пробег</TableColumn>
+                        <TableColumn>Закупка</TableColumn>
+                        <TableColumn>Продажа</TableColumn>
+                        <TableColumn>Статус</TableColumn>
+                      </TableHeader>
+                      <TableBody emptyContent="Нет машин">
+                        {cars
+                          .filter((c) => c.managerName === client.name || c.managerPassport === client.passportNumber)
+                          .map((c) => {
+                            const status = getStatusInfo(c.status);
+                            return (
+                              <TableRow key={c.id}>
+                                <TableCell>
+                                  <div>
+                                    <p className="font-medium">{c.brand} {c.model}</p>
+                                    <p className="text-xs text-default-400">{c.color}</p>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <p className="text-xs font-mono">{c.vin}</p>
+                                </TableCell>
+                                <TableCell>{c.year}</TableCell>
+                                <TableCell>{c.mileage.toLocaleString()} км</TableCell>
+                                <TableCell>
+                                  <p className="font-medium">{formatCurrency(c.purchasePrice)}</p>
+                                </TableCell>
+                                <TableCell>
+                                  <p className="font-medium text-success">{formatCurrency(c.sellingPrice)}</p>
+                                </TableCell>
+                                <TableCell>
+                                  {status && (
+                                    <Chip size="sm" color={status.color} variant="flat">
+                                      {status.label}
+                                    </Chip>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={onViewClose}>
+                  Закрыть
+                </Button>
+                <Button color="primary">
+                  Редактировать
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }
