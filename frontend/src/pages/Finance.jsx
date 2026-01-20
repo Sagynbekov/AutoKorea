@@ -164,16 +164,16 @@ function RevenueChart({ cars }) {
     let expense = 0;
 
     cars.forEach(car => {
-      // Расходы - все затраты на машину
-      expense += (car.purchasePrice || 0) + 
-                 (car.shippingCost || 0) + 
-                 (car.customsCost || 0) + 
-                 (car.repairCost || 0) + 
-                 (car.additionalCost || 0);
-      
-      // Доходы - только проданные машины
+      // Только проданные машины
       if (car.status === 'sold' && car.sellingPrice) {
         income += car.sellingPrice;
+        
+        // Расходы только на проданные машины
+        expense += (car.purchasePrice || 0) + 
+                   (car.shippingCost || 0) + 
+                   (car.customsCost || 0) + 
+                   (car.repairCost || 0) + 
+                   (car.additionalCost || 0);
       }
     });
 
@@ -573,28 +573,28 @@ export default function Finance() {
   // Вычисляем финансовую статистику
   const stats = useMemo(() => {
     let totalRevenue = 0; // Общая выручка от продаж
-    let totalExpenses = 0; // Все расходы
+    let soldCarsCosts = 0; // Затраты только на проданные машины
     
     filteredCars.forEach(car => {
-      // Расходы на каждый автомобиль
-      totalExpenses += (car.purchasePrice || 0) + 
-                      (car.shippingCost || 0) + 
-                      (car.customsCost || 0) + 
-                      (car.repairCost || 0) + 
-                      (car.additionalCost || 0);
-      
-      // Выручка только от проданных машин
+      // Только проданные машины для расчета прибыли
       if (car.status === 'sold' && car.sellingPrice) {
         totalRevenue += car.sellingPrice;
+        
+        // Расходы только на проданные автомобили
+        soldCarsCosts += (car.purchasePrice || 0) + 
+                        (car.shippingCost || 0) + 
+                        (car.customsCost || 0) + 
+                        (car.repairCost || 0) + 
+                        (car.additionalCost || 0);
       }
     });
 
-    const netProfit = totalRevenue - totalExpenses; // Чистая прибыль
+    const netProfit = totalRevenue - soldCarsCosts; // Чистая прибыль от проданных авто
 
     return {
       totalRevenue,
       netProfit,
-      totalExpenses
+      totalExpenses: soldCarsCosts
     };
   }, [filteredCars]);
 
