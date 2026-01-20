@@ -145,11 +145,14 @@ function StaffProfileSettings() {
 // Настройки калькулятора для админа
 function CalculatorSettings() {
   const [settings, setSettings] = useState({
-    vat: 12, // НДС %
-    deliveryRate: 800, // Ставка доставки за км
-    customsRate: 0.15, // Процент растаможки от стоимости авто
-    insuranceRate: 0.05, // Процент страховки
-    commissionRate: 0.10, // Комиссия компании
+    exchangeRate: 1300, // Курс вон на доллар
+    deliveryEconomy: 500, // Тариф эконом ($)
+    deliveryStandard: 800, // Тариф стандарт ($)
+    deliveryExpress: 1200, // Тариф экспресс ($)
+    ageRate: 50, // Цена за возраст автомобиля ($)
+    customsDuty: 15, // Таможенная пошлина (%)
+    vat: 12, // НДС (%)
+    recyclingFee: 3000, // Утилизационный сбор ($)
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -200,82 +203,142 @@ function CalculatorSettings() {
 
       <Divider />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
+      {/* Курс валюты */}
+      <div>
+        <h4 className="font-semibold mb-3 text-default-700">Курс валюты</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
-            label="НДС (%)"
+            label="Курс вон на доллар"
             type="number"
+            value={settings.exchangeRate.toString()}
+            onValueChange={(value) => setSettings({ ...settings, exchangeRate: parseFloat(value) || 0 })}
+            variant="bordered"
+            startContent={<span className="text-default-400">₩</span>}
+            endContent={<span className="text-default-400">= $1</span>}
+            description="Текущий курс корейской воны к доллару"
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      {/* Тарифы доставки */}
+      <div>
+        <h4 className="font-semibold mb-3 text-default-700">Тарифы доставки</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            label="Эконом"
+            type="number"
+            value={settings.deliveryEconomy.toString()}
+            onValueChange={(value) => setSettings({ ...settings, deliveryEconomy: parseFloat(value) || 0 })}
+            variant="bordered"
+            startContent={<span className="text-default-400">$</span>}
+            description="Стандартная доставка"
+          />
+          <Input
+            label="Стандарт"
+            type="number"
+            value={settings.deliveryStandard.toString()}
+            onValueChange={(value) => setSettings({ ...settings, deliveryStandard: parseFloat(value) || 0 })}
+            variant="bordered"
+            startContent={<span className="text-default-400">$</span>}
+            description="Ускоренная доставка"
+          />
+          <Input
+            label="Экспресс"
+            type="number"
+            value={settings.deliveryExpress.toString()}
+            onValueChange={(value) => setSettings({ ...settings, deliveryExpress: parseFloat(value) || 0 })}
+            variant="bordered"
+            startContent={<span className="text-default-400">$</span>}
+            description="Срочная доставка"
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      {/* Возраст автомобиля */}
+      <div>
+        <h4 className="font-semibold mb-3 text-default-700">Возраст автомобиля</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Input
+            label="Цена за год возраста"
+            type="number"
+            value={settings.ageRate.toString()}
+            onValueChange={(value) => setSettings({ ...settings, ageRate: parseFloat(value) || 0 })}
+            variant="bordered"
+            startContent={<span className="text-default-400">$</span>}
+            description="Доплата за каждый год возраста авто"
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      {/* Налоги и сборы */}
+      <div>
+        <h4 className="font-semibold mb-3 text-default-700">Налоги и сборы</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Input
+            label="Таможенная пошлина"
+            type="number"
+            step="0.1"
+            value={settings.customsDuty.toString()}
+            onValueChange={(value) => setSettings({ ...settings, customsDuty: parseFloat(value) || 0 })}
+            variant="bordered"
+            endContent={<span className="text-default-400">%</span>}
+            description="Процент от стоимости авто"
+          />
+          <Input
+            label="НДС"
+            type="number"
+            step="0.1"
             value={settings.vat.toString()}
             onValueChange={(value) => setSettings({ ...settings, vat: parseFloat(value) || 0 })}
             variant="bordered"
             endContent={<span className="text-default-400">%</span>}
             description="Налог на добавленную стоимость"
           />
-        </div>
-
-        <div className="space-y-2">
           <Input
-            label="Ставка доставки ($ за км)"
+            label="Утилизационный сбор"
             type="number"
-            value={settings.deliveryRate.toString()}
-            onValueChange={(value) => setSettings({ ...settings, deliveryRate: parseFloat(value) || 0 })}
+            value={settings.recyclingFee.toString()}
+            onValueChange={(value) => setSettings({ ...settings, recyclingFee: parseFloat(value) || 0 })}
             variant="bordered"
             startContent={<span className="text-default-400">$</span>}
-            description="Стоимость доставки за километр"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Input
-            label="Процент растаможки (%)"
-            type="number"
-            step="0.01"
-            value={(settings.customsRate * 100).toString()}
-            onValueChange={(value) => setSettings({ ...settings, customsRate: parseFloat(value) / 100 || 0 })}
-            variant="bordered"
-            endContent={<span className="text-default-400">%</span>}
-            description="От стоимости автомобиля"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Input
-            label="Процент страховки (%)"
-            type="number"
-            step="0.01"
-            value={(settings.insuranceRate * 100).toString()}
-            onValueChange={(value) => setSettings({ ...settings, insuranceRate: parseFloat(value) / 100 || 0 })}
-            variant="bordered"
-            endContent={<span className="text-default-400">%</span>}
-            description="От стоимости автомобиля"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Input
-            label="Комиссия компании (%)"
-            type="number"
-            step="0.01"
-            value={(settings.commissionRate * 100).toString()}
-            onValueChange={(value) => setSettings({ ...settings, commissionRate: parseFloat(value) / 100 || 0 })}
-            variant="bordered"
-            endContent={<span className="text-default-400">%</span>}
-            description="Прибыль компании"
+            description="Фиксированный сбор"
           />
         </div>
       </div>
 
+      <Divider />
+
+      {/* Предварительный расчет */}
       <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
         <h4 className="font-semibold mb-2 text-primary">Предварительный расчет</h4>
-        <p className="text-sm text-default-600">
-          Для автомобиля стоимостью $20,000:
+        <p className="text-sm text-default-600 mb-3">
+          Для автомобиля 2020 года стоимостью $20,000:
         </p>
-        <ul className="text-sm text-default-600 mt-2 space-y-1">
-          <li>• НДС: ${(20000 * settings.vat / 100).toFixed(2)}</li>
-          <li>• Растаможка: ${(20000 * settings.customsRate).toFixed(2)}</li>
-          <li>• Страховка: ${(20000 * settings.insuranceRate).toFixed(2)}</li>
-          <li>• Комиссия: ${(20000 * settings.commissionRate).toFixed(2)}</li>
-        </ul>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <p className="text-xs text-default-500 mb-2">Доставка:</p>
+            <ul className="text-sm text-default-600 space-y-1">
+              <li>• Эконом: ${settings.deliveryEconomy.toLocaleString()}</li>
+              <li>• Стандарт: ${settings.deliveryStandard.toLocaleString()}</li>
+              <li>• Экспресс: ${settings.deliveryExpress.toLocaleString()}</li>
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs text-default-500 mb-2">Налоги и сборы:</p>
+            <ul className="text-sm text-default-600 space-y-1">
+              <li>• Возраст (4 года): ${(settings.ageRate * 4).toLocaleString()}</li>
+              <li>• Таможенная пошлина: ${(20000 * settings.customsDuty / 100).toLocaleString()}</li>
+              <li>• НДС: ${(20000 * settings.vat / 100).toLocaleString()}</li>
+              <li>• Утилизационный сбор: ${settings.recyclingFee.toLocaleString()}</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       <Button 
@@ -283,6 +346,7 @@ function CalculatorSettings() {
         startContent={<Save size={16} />}
         onPress={handleSave}
         isLoading={saving}
+        size="lg"
       >
         Сохранить настройки
       </Button>

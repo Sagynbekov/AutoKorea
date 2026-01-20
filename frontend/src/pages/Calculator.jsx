@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Card,
   CardBody,
@@ -23,61 +23,53 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { formatCurrency } from '../data/mockData';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 // Курсы валют (mock)
 const exchangeRates = {
-  KRW_USD: 0.00075, // 1 KRW = 0.00075 USD
   USD_RUB: 92.5,     // 1 USD = 92.5 RUB
 };
 
-// Тарифы доставки
-const shippingRates = {
-  economy: { label: 'Эконом (60-90 дней)', price: 900 },
-  standard: { label: 'Стандарт (45-60 дней)', price: 1200 },
-  express: { label: 'Экспресс (30-45 дней)', price: 1600 },
-};
-
-// Расчет таможенной пошлины (упрощенный)
-const calculateCustomsDuty = (priceUSD, engineVolume, engineType, carAge) => {
-  // Упрощенная формула для примера
-  let dutyRate = 0.15; // Базовая ставка 15%
-  
-  // Корректировка по объему двигателя
-  if (parseFloat(engineVolume) > 3.0) dutyRate += 0.05;
-  else if (parseFloat(engineVolume) > 2.0) dutyRate += 0.02;
-  
-  // Электрокары
-  if (engineType === 'electric') return 0;
-  
-  // Возраст авто
-  if (carAge > 5) dutyRate += 0.1;
-  else if (carAge > 3) dutyRate += 0.05;
-  
-  return priceUSD * dutyRate;
-};
-
-// Расчет НДС
-const calculateVAT = (priceUSD, customsDuty) => {
-  return (priceUSD + customsDuty) * 0.20; // 20% НДС
-};
-
-// Расчет утилизационного сбора
-const calculateRecyclingFee = (engineVolume, carAge) => {
-  const baseRate = 20000; // Базовая ставка в рублях
-  let coefficient = 1;
-  
-  if (parseFloat(engineVolume) > 3.5) coefficient = 5.73;
-  else if (parseFloat(engineVolume) > 3.0) coefficient = 4.5;
-  else if (parseFloat(engineVolume) > 2.0) coefficient = 3.2;
-  else if (parseFloat(engineVolume) > 1.0) coefficient = 1.84;
-  
-  // Увеличение для старых авто
-  if (carAge > 3) coefficient *= 1.5;
-  
-  return (baseRate * coefficient) / exchangeRates.USD_RUB; // Конвертируем в USD
-};
-
 export default function Calculator() {
+  // Настройки калькулятора из Firestore
+  const [settings, setSettings] = useState({
+    exchangeRate: 1300,
+    deliveryEconomy: 500,
+    deliveryStandard: 800,
+    deliveryExpress: 1200,
+    ageRate: 50,
+    customsDuty: 15,
+    vat: 12,
+    recyclingFee: 3000,
+  });
+  const [loadingSettings, setLoadingSettings] = useState(true);
+
+  // Загрузка настроек при монтировании
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const docRef = doc(db, 'settings', 'calculator');
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setSettings({ ...settings, ...docSnap.data() });
+        }
+      } catch (error) {
+        console.error('Error loading calculator settings:', error);
+      } finally {
+        setLoadingSettings(false);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Тарифы доставки из настроек
+  const shippingRates = useMemo(() => ({
+    economy: { label: 'Эконом (60-90 дней)', price: settings.deliveryEconomy },
+    standard: { label: 'Стандарт (45-60 дней)', price: settings.deliveryStandard },
+    express: { label: 'Экспресс (30-45 дней)', price: settings.deliveryExpress },
+  }), [settings]);
+
   // Входные данные
   const [priceKRW, setPriceKRW] = useState('25000000');
   const [engineVolume, setEngineVolume] = useState('2.0');
@@ -90,15 +82,26 @@ export default function Calculator() {
 
   // Расчеты
   const calculations = useMemo(() => {
-    const priceUSD = parseInt(priceKRW || 0) * exchangeRates.KRW_USD;
+    const KRW_USD = 1 / settings.exchangeRate; // Конвертируем курс
+    const priceUSD = parseInt(priceKRW || 0) * KRW_USD;
     const shipping = shippingRates[shippingType].price;
-    const customs = calculateCustomsDuty(priceUSD, engineVolume, engineType, carAge);
-    const vat = calculateVAT(priceUSD, customs);
-    const recycling = calculateRecyclingFee(engineVolume, carAge);
+    
+    // Таможенная пошлина из настроек
+    const customs = priceUSD * (settings.customsDuty / 100);
+    
+    // НДС из настроек
+    const vat = (priceUSD + customs) * (settings.vat / 100);
+    
+    // Утилизационный сбор из настроек
+    const recycling = settings.recyclingFee;
+    
+    // Доплата за возраст
+    const ageCost = carAge * settings.ageRate;
+    
     const repair = parseFloat(repairCost) || 0;
     const additional = parseFloat(additionalCost) || 0;
 
-    const totalCost = priceUSD + shipping + customs + vat + recycling + repair + additional;
+    const totalCost = priceUSD + shipping + customs + vat + recycling + ageCost + repair + additional;
     const recommendedPrice = totalCost * (1 + desiredMargin / 100);
     const profit = recommendedPrice - totalCost;
 
@@ -108,6 +111,7 @@ export default function Calculator() {
       customs: Math.round(customs),
       vat: Math.round(vat),
       recycling: Math.round(recycling),
+      ageCost: Math.round(ageCost),
       repair,
       additional,
       totalCost: Math.round(totalCost),
@@ -115,7 +119,7 @@ export default function Calculator() {
       profit: Math.round(profit),
       priceRUB: Math.round(recommendedPrice * exchangeRates.USD_RUB),
     };
-  }, [priceKRW, engineVolume, engineType, carAge, shippingType, repairCost, additionalCost, desiredMargin]);
+  }, [priceKRW, engineVolume, engineType, carAge, shippingType, repairCost, additionalCost, desiredMargin, settings, shippingRates]);
 
   const resetForm = () => {
     setPriceKRW('25000000');
@@ -143,7 +147,13 @@ export default function Calculator() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {loadingSettings ? (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-default-500">Загрузка настроек калькулятора...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Input Form */}
         <div className="lg:col-span-2 space-y-6">
           {/* Car Price */}
@@ -340,12 +350,16 @@ export default function Calculator() {
                   <span className="font-medium">{formatCurrency(calculations.customs)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-default-500">НДС (20%)</span>
+                  <span className="text-default-500">НДС ({settings.vat}%)</span>
                   <span className="font-medium">{formatCurrency(calculations.vat)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-default-500">Утилизационный сбор</span>
                   <span className="font-medium">{formatCurrency(calculations.recycling)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-default-500">Возраст ({carAge} {carAge === 1 ? 'год' : carAge < 5 ? 'года' : 'лет'})</span>
+                  <span className="font-medium">{formatCurrency(calculations.ageCost)}</span>
                 </div>
                 {calculations.repair > 0 && (
                   <div className="flex justify-between text-sm">
@@ -396,14 +410,15 @@ export default function Calculator() {
 
               {/* Exchange rates info */}
               <div className="text-xs text-default-400 space-y-1">
-                <p>Курсы валют (ориентировочные):</p>
-                <p>1 USD = 1,333 KRW</p>
+                <p>Курсы валют (из настроек):</p>
+                <p>1 USD = {settings.exchangeRate.toLocaleString()} KRW</p>
                 <p>1 USD = {exchangeRates.USD_RUB} RUB</p>
               </div>
             </CardBody>
           </Card>
         </div>
       </div>
+      )}
     </div>
   );
 }
