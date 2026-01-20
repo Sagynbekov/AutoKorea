@@ -14,12 +14,13 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { Button, Tooltip } from '@heroui/react';
+import { useAuth } from '../../context/AuthContext';
 
 const menuItems = [
   {
     section: 'Главное',
     items: [
-      { path: '/', icon: LayoutDashboard, label: 'Дашборд' },
+      { path: '/', icon: LayoutDashboard, label: 'Дашборд', adminOnly: true },
       { path: '/orders', icon: Package, label: 'Заказы' },
       { path: '/cars', icon: Car, label: 'Автомобили' },
     ],
@@ -27,15 +28,15 @@ const menuItems = [
   {
     section: 'Управление',
     items: [
-      { path: '/clients', icon: Users, label: 'Сотрудники' },
-      { path: '/finance', icon: Wallet, label: 'Финансы' },
+      { path: '/clients', icon: Users, label: 'Сотрудники', adminOnly: true },
+      { path: '/finance', icon: Wallet, label: 'Финансы', adminOnly: true },
       { path: '/calculator', icon: Calculator, label: 'Калькулятор' },
     ],
   },
   {
     section: 'Аналитика',
     items: [
-      { path: '/reports', icon: FileText, label: 'Отчеты' },
+      { path: '/reports', icon: FileText, label: 'Отчеты', adminOnly: true },
     ],
   },
   {
@@ -48,6 +49,7 @@ const menuItems = [
 
 export default function Sidebar({ isCollapsed, onToggle }) {
   const location = useLocation();
+  const { isAdmin } = useAuth();
 
   return (
     <aside 
@@ -59,17 +61,26 @@ export default function Sidebar({ isCollapsed, onToggle }) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-3">
-          {menuItems.map((section, sectionIndex) => (
-            <div key={sectionIndex} className="mb-6">
-              {!isCollapsed && (
-                <p className="text-xs font-semibold text-default-400 uppercase tracking-wider mb-3 px-3">
-                  {section.section}
-                </p>
-              )}
-              <ul className="space-y-1">
-                {section.items.map((item) => {
-                  const isActive = location.pathname === item.path;
-                  const Icon = item.icon;
+          {menuItems.map((section, sectionIndex) => {
+            // Фильтруем пункты меню для сотрудников
+            const visibleItems = section.items.filter(
+              (item) => !item.adminOnly || isAdmin
+            );
+            
+            // Не показываем секцию, если в ней нет доступных пунктов
+            if (visibleItems.length === 0) return null;
+            
+            return (
+              <div key={sectionIndex} className="mb-6">
+                {!isCollapsed && (
+                  <p className="text-xs font-semibold text-default-400 uppercase tracking-wider mb-3 px-3">
+                    {section.section}
+                  </p>
+                )}
+                <ul className="space-y-1">
+                  {visibleItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    const Icon = item.icon;
                   
                   const linkContent = (
                     <NavLink
@@ -108,7 +119,8 @@ export default function Sidebar({ isCollapsed, onToggle }) {
                 })}
               </ul>
             </div>
-          ))}
+          );
+          })}
         </nav>
 
         {/* Footer */}
