@@ -105,6 +105,7 @@ export default function Clients() {
       await createStaff({
         name: formData.name,
         passportNumber: formData.passportNumber,
+        password: formData.password,
         phone: formData.phone,
         email: formData.email || '',
         status: 'active',
@@ -300,6 +301,7 @@ export default function Clients() {
                   <div>
                     <h3 className="text-lg font-semibold">{selectedClient.name}</h3>
                     <p className="text-sm text-default-500">ИНН: {selectedClient.passportNumber}</p>
+                    <p className="text-sm text-default-500">Пароль: {selectedClient.password || 'Не указан'}</p>
                   </div>
                 </div>
               </ModalHeader>

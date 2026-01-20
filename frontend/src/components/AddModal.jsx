@@ -406,6 +406,14 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
               isNumeric: true,
             },
             {
+              name: 'password',
+              label: 'Пароль',
+              type: 'input',
+              inputType: 'password',
+              required: true,
+              placeholder: 'Введите пароль',
+            },
+            {
               name: 'phone',
               label: 'Телефон',
               type: 'phone',
