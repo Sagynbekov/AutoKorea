@@ -1,6 +1,6 @@
 # AutoKorea 🚗
 
-A comprehensive car dealership management system built with React and FastAPI, featuring real-time inventory management, staff administration, and financial tracking.
+A comprehensive car dealership management system built with React and Firebase Firestore, featuring real-time inventory management, staff administration, and financial tracking.
 
 ## 📺 Demo Video
 
@@ -16,11 +16,11 @@ Watch the project demo: [https://youtu.be/tjr4panhi0k](https://youtu.be/tjr4panh
 - **Order Management**: Track sales and orders
 - **Reports**: Generate detailed business analytics
 - **Authentication**: Secure Firebase-based authentication
+- **Real-time Database**: Direct Firestore integration for instant data sync
 - **Export Functionality**: Export data to PDF and Excel formats
 
 ## 🛠️ Tech Stack
 
-### Frontend
 - **React 19** - Modern UI library
 - **Vite** - Fast build tool and dev server
 - **React Router DOM** - Client-side routing
@@ -28,40 +28,25 @@ Watch the project demo: [https://youtu.be/tjr4panhi0k](https://youtu.be/tjr4panh
 - **HeroUI/NextUI** - Component library
 - **Framer Motion** - Animation library
 - **Axios** - HTTP client
-- **Firebase** - Authentication and backend services
+- **Firebase & Firestore** - Authentication and real-time database
 - **Lucide React** - Icon library
 - **jsPDF** - PDF generation
 - **XLSX** - Excel file handling
-
-### Backend
-- **FastAPI** - High-performance Python web framework
-- **Firebase Admin SDK** - Backend authentication and database
-- **Pydantic** - Data validation
-- **CORS Middleware** - Cross-origin resource sharing
 
 ## 📁 Project Structure
 
 ```
 AutoKorea/
-├── frontend/                 # React frontend application
-│   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── pages/           # Page components
-│   │   ├── services/        # API service layer
-│   │   ├── hooks/           # Custom React hooks
-│   │   ├── context/         # React context providers
-│   │   ├── api/             # API client configuration
-│   │   └── config/          # App configuration
-│   └── public/              # Static assets
-│
-└── backend/                  # FastAPI backend application
-    ├── app/
-    │   ├── config/          # Configuration files
-    │   ├── models/          # Data models
-    │   ├── routes/          # API endpoints
-    │   ├── schemas/         # Pydantic schemas
-    │   └── services/        # Business logic
-    └── main.py              # Application entry point
+└── frontend/                 # React application
+    ├── src/
+    │   ├── components/      # Reusable UI components
+    │   ├── pages/           # Page components
+    │   ├── services/        # Firestore service layer
+    │   ├── hooks/           # Custom React hooks
+    │   ├── context/         # React context providers
+    │   ├── api/             # API client configuration
+    │   └── config/          # Firebase configuration
+    └── public/              # Static assets
 ```
 
 ## 🚀 Getting Started
@@ -78,33 +63,19 @@ AutoKorea/
 #### 1. Clone the Repository
 
 ```bash
+giFirebase account and project
+- npm or yarn package manager
+
+### Installation
+
+#### 1. Clone the Repository
+
+```bash
 git clone <repository-url>
 cd AutoKorea
 ```
 
-#### 2. Backend Setup
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Add your Firebase service account key
-# Place serviceAccountKey.json in the backend directory
-```
-
-#### 3. Frontend Setup
+#### 2. Install Dependencies
 
 ```bash
 # Navigate to frontend directory
@@ -112,35 +83,16 @@ cd frontend
 
 # Install dependencies
 npm install
-
-# Configure Firebase
-# Update src/config/firebase.js with your Firebase configuration
 ```
+
+#### 3. Configure Firebase
+
+Update `src/config/firebase.js` with your Firebase configuration
 
 ### Running the Application
 
-#### Start Backend Server
-
 ```bash
-cd backend
-uvicorn main:app --reload
-```
-
-The API will be available at `http://localhost:8000`
-
-#### Start Frontend Development Server
-
-```bash
-cd frontend
-npm run dev
-```
-
-The application will be available at `http://localhost:5173`
-
-## 🔧 Configuration
-
-### Firebase Setup
-
+# Start the development server
 1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
 2. Enable Authentication (Email/Password)
 3. Create a Firestore database
@@ -177,25 +129,23 @@ Once the backend is running, access the interactive API documentation:
 - `/settings` - Application settings
 - `/login` - Authentication
 
-## 🔐 Authentication
+## Set up Firestore security rules
+5. Get your web app configuration
 
-The application uses Firebase Authentication. Protected routes require user login. Authentication state is managed through React Context.
+### Configuration File
 
-## 📦 Building for Production
+Update `frontend/src/config/firebase.js` with your Firebase credentials:
 
-### Frontend
-
-```bash
-cd frontend
-npm run build
-```
-
-The production-ready files will be in the `dist` directory.
-
-### Backend
-
-For production deployment, use a production ASGI server:
-
+```javascript
+const firebaseConfig = {
+  apiKey: "your-api-key",
+  authDomain: "your-auth-domain",
+  projectId: "your-project-id",
+  storageBucket: "your-storage-bucket",
+  messagingSenderId: "your-messaging-sender-id",
+  appId: "your-app-id"
+};
+``
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
@@ -215,3 +165,12 @@ AutoKorea Development Team
 ---
 
 **Note**: Make sure to configure your Firebase credentials properly before running the application. Never commit sensitive credentials to version control.
+```bash
+## 🔒 Security Notes
+
+- Never commit your Firebase configuration with sensitive credentials to version control
+- Set up proper Firestore security rules to protect your data
+- Use environment variables for sensitive configuration in production
+```
+
+The production-ready files will be in the `dist` directory. Deploy to your preferred hosting service (Firebase Hosting, Vercel, Netlify, etc.).
