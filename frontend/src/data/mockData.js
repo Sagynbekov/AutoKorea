@@ -7,7 +7,7 @@ export const carStatuses = {
   SHIPPING: { key: 'shipping', label: 'На корабле', color: 'secondary' },
   CUSTOMS: { key: 'customs', label: 'Растаможка', color: 'warning' },
   IN_STOCK: { key: 'in_stock', label: 'В наличии', color: 'success' },
-  SOLD: { key: 'sold', label: 'Продан', color: 'default' },
+  SOLD: { key: 'sold', label: 'Продан', color: 'danger' },
 };
 
 // Автомобили
