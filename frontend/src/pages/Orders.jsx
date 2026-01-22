@@ -76,7 +76,7 @@ export default function Orders() {
 
   // Статистика
   const stats = {
-    total: orders.length,
+    total: cars.length, // Общее количество всех машин
     inTransit: orders.filter(o => ['shipping', 'at_port'].includes(o.status)).length,
     customs: orders.filter(o => o.status === 'customs').length,
     inKorea: orders.filter(o => o.status === 'in_korea').length,

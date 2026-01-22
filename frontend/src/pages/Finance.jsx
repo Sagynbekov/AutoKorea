@@ -164,17 +164,17 @@ function RevenueChart({ cars }) {
     let expense = 0;
 
     cars.forEach(car => {
-      // Только проданные машины
+      // Доходы - только от проданных машин
       if (car.status === 'sold' && car.sellingPrice) {
         income += car.sellingPrice;
-        
-        // Расходы только на проданные машины
-        expense += (car.purchasePrice || 0) + 
-                   (car.shippingCost || 0) + 
-                   (car.customsCost || 0) + 
-                   (car.repairCost || 0) + 
-                   (car.additionalCost || 0);
       }
+      
+      // Расходы - на ВСЕ машины (купленные, в наличии, проданные)
+      expense += (car.purchasePrice || 0) + 
+                 (car.shippingCost || 0) + 
+                 (car.customsCost || 0) + 
+                 (car.repairCost || 0) + 
+                 (car.additionalCost || 0);
     });
 
     return { totalIncome: income, totalExpense: expense };

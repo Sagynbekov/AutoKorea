@@ -851,7 +851,7 @@ export default function AddModal({ isOpen, onClose, type, onSubmit }) {
                 </div>
               ) : type === 'order' && currentStep === 2 ? (
                 <p className="text-sm text-default-500 font-normal">
-                  Добавьте фотографии автомобиля (минимум 3)
+                  Добавьте фотографии автомобиля
                 </p>
               ) : (
                 (type === 'car' || type === 'order') && (
