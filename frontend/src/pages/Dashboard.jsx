@@ -283,14 +283,30 @@ function RecentTransactions({ cars }) {
 function SalesChart({ cars }) {
   // Группируем данные по месяцам для графика
   const salesByMonth = useMemo(() => {
-    const monthsData = {};
+    // Создаем массив последних 6 месяцев
+    const now = new Date();
+    const last6Months = [];
     
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const monthName = date.toLocaleDateString('ru-RU', { month: 'short' });
+      
+      last6Months.push({
+        monthKey,
+        month: monthName,
+        revenue: 0,
+        sales: 0,
+        date: date
+      });
+    }
+    
+    // Заполняем данными о продажах
     cars.forEach(car => {
       if (car.status === 'sold' && car.sellingPrice) {
         // Используем разные поля дат в порядке приоритета
-        let dateString = car.soldDate || car.saleDate || car.arrivalDate || car.purchaseDate;
-        
-        if (!dateString) return; // Пропускаем если нет даты
+        let dateString = car.soldDate || car.saleDate || car.sold_date || car.sale_date || 
+                        car.arrivalDate || car.arrival_date || car.purchaseDate || car.purchase_date;
         
         // Обработка разных форматов дат
         let date;
@@ -302,27 +318,27 @@ function SalesChart({ cars }) {
         } else if (dateString instanceof Date) {
           date = dateString;
         } else {
-          return; // Неизвестный формат
+          // Если нет даты, используем текущую
+          date = new Date();
         }
         
-        if (isNaN(date.getTime())) return; // Невалидная дата
+        // Проверка на валидность даты
+        if (isNaN(date.getTime())) {
+          date = new Date();
+        }
         
         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const monthName = date.toLocaleDateString('ru-RU', { month: 'short' });
         
-        if (!monthsData[monthKey]) {
-          monthsData[monthKey] = { month: monthName, revenue: 0, sales: 0, date: date };
+        // Находим соответствующий месяц в нашем массиве
+        const monthData = last6Months.find(m => m.monthKey === monthKey);
+        if (monthData) {
+          monthData.revenue += car.sellingPrice || 0;
+          monthData.sales += 1;
         }
-        monthsData[monthKey].revenue += car.sellingPrice || 0;
-        monthsData[monthKey].sales += 1;
       }
     });
 
-    // Сортируем по дате и берем последние 6 месяцев
-    return Object.values(monthsData)
-      .sort((a, b) => a.date - b.date)
-      .slice(-6)
-      .map(({ month, revenue, sales }) => ({ month, revenue, sales }));
+    return last6Months.map(({ month, revenue, sales }) => ({ month, revenue, sales }));
   }, [cars]);
 
   const maxRevenue = salesByMonth.length > 0 ? Math.max(...salesByMonth.map(s => s.revenue)) : 0;
