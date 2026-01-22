@@ -207,6 +207,54 @@ function RecentTransactions({ cars }) {
         });
       }
 
+      // Доставка (расход)
+      if (car.shippingCost && car.shippingCost > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'expense',
+          category: 'Доставка',
+          description: `Доставка ${car.brand} ${car.model}`,
+          amount: car.shippingCost,
+          date: car.purchaseDate || new Date().toISOString().split('T')[0],
+        });
+      }
+
+      // Растаможка (расход)
+      if (car.customsCost && car.customsCost > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'expense',
+          category: 'Растаможка',
+          description: `Растаможка ${car.brand} ${car.model}`,
+          amount: car.customsCost,
+          date: car.arrivalDate || car.purchaseDate || new Date().toISOString().split('T')[0],
+        });
+      }
+
+      // Ремонт (расход)
+      if (car.repairCost && car.repairCost > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'expense',
+          category: 'Ремонт',
+          description: `Ремонт ${car.brand} ${car.model}`,
+          amount: car.repairCost,
+          date: car.arrivalDate || car.purchaseDate || new Date().toISOString().split('T')[0],
+        });
+      }
+
+      // Дополнительные расходы (расход)
+      if (car.additionalCost && car.additionalCost > 0) {
+        allTransactions.push({
+          id: transactionId++,
+          type: 'expense',
+          category: 'Дополнительные расходы',
+          description: `Доп. расходы ${car.brand} ${car.model}`,
+          amount: car.additionalCost,
+          date: car.arrivalDate || car.purchaseDate || new Date().toISOString().split('T')[0],
+        });
+      }
+
       // Продажа автомобиля (доход)
       if (car.status === 'sold' && car.sellingPrice && car.sellingPrice > 0) {
         allTransactions.push({
