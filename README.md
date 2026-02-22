@@ -2,9 +2,6 @@
 
 A comprehensive car dealership management system built with React and Firebase Firestore, featuring real-time inventory management, staff administration, and financial tracking.
 
-## 📺 Demo Video
-
-Watch the project demo: [https://youtu.be/tjr4panhi0k](https://youtu.be/tjr4panhi0k)
 
 ## 🌟 Features
 
