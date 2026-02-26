@@ -416,7 +416,6 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
                     value={buyerInfo.passportSeries}
                     onChange={(e) => handleInputChange('passportSeries', e.target.value)}
                     classNames={{ inputWrapper: "rounded-lg" }}
-                    maxLength={2}
                   />
                   <Input
                     label="Персональный номер"
