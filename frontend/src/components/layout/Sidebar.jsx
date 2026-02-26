@@ -12,6 +12,7 @@ import {
   Package,
   Calculator,
   HelpCircle,
+  Bell,
 } from 'lucide-react';
 import { Button, Tooltip } from '@heroui/react';
 import { useAuth } from '../../context/AuthContext';
@@ -31,6 +32,12 @@ const menuItems = [
       { path: '/clients', icon: Users, label: 'Сотрудники', adminOnly: true },
       { path: '/finance', icon: Wallet, label: 'Финансы', adminOnly: true },
       { path: '/calculator', icon: Calculator, label: 'Калькулятор' },
+    ],
+  },
+  {
+    section: 'Коммуникация',
+    items: [
+      { path: '/notifications', icon: Bell, label: 'Уведомления' },
     ],
   },
   {

@@ -49,6 +49,7 @@ import {
 } from '../data/mockData';
 import { useCars, useCarOperations } from '../hooks/useCars';
 import { useStaff } from '../hooks/useStaff';
+import ContractGenerator from '../components/ContractGenerator';
 
 // Компонент карточки характеристики
 function SpecCard({ icon: Icon, label, value, color = 'default' }) {
@@ -190,6 +191,7 @@ export default function CarDetail() {
   const { updateCar } = useCarOperations();
   const { isOpen: isViewOpen, onOpen: onViewOpen, onClose: onViewClose } = useDisclosure();
   const { isOpen: isStatusOpen, onOpen: onStatusOpen, onClose: onStatusClose } = useDisclosure();
+  const { isOpen: isContractOpen, onOpen: onContractOpen, onClose: onContractClose } = useDisclosure();
   const [selectedStatus, setSelectedStatus] = useState('');
   
   const car = cars.find(c => c.id === id);
@@ -422,7 +424,13 @@ export default function CarDetail() {
               <h3 className="text-lg font-semibold">Действия</h3>
             </CardHeader>
             <CardBody className="space-y-2">
-              <Button variant="flat" color="primary" fullWidth startContent={<FileText size={16} />}>
+              <Button 
+                variant="flat" 
+                color="primary" 
+                fullWidth 
+                startContent={<FileText size={16} />}
+                onPress={onContractOpen}
+              >
                 Создать договор
               </Button>
               <Button 
@@ -624,6 +632,16 @@ export default function CarDetail() {
           )}
         </ModalContent>
       </Modal>
+
+      {/* Contract Generator Modal */}
+      <ContractGenerator
+        isOpen={isContractOpen}
+        onClose={onContractClose}
+        car={car}
+        onGenerate={() => {
+          console.log('Договор сгенерирован для автомобиля:', car.brand, car.model);
+        }}
+      />
     </div>
   );
 }

@@ -9,6 +9,7 @@ import Calculator from './pages/Calculator';
 import Orders from './pages/Orders';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -46,6 +47,7 @@ function App() {
             }
           />
           <Route path="calculator" element={<Calculator />} />
+          <Route path="notifications" element={<Notifications />} />
           <Route path="orders" element={<Orders />} />
           <Route
             path="reports"
