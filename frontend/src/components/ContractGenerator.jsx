@@ -66,29 +66,48 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
             <title>Договор купли-продажи ${car.brand} ${car.model}</title>
             <meta charset="UTF-8">
             <style>
-              @page { margin: 2cm; }
+              @page { margin: 1.5cm; }
               body { 
                 font-family: 'Times New Roman', serif; 
                 font-size: 14px; 
-                line-height: 1.6; 
+                line-height: 1.4; 
                 margin: 0; 
-                padding: 20px;
+                padding: 10px;
                 color: #000;
               }
               .header { 
                 text-align: center; 
                 font-weight: bold; 
                 font-size: 16px;
-                margin-bottom: 30px; 
+                margin-bottom: 20px; 
               }
-              .content {
-                white-space: pre-wrap;
+              h3 { 
+                margin: 15px 0 10px 0; 
+                font-size: 15px;
+              }
+              p { 
+                margin: 8px 0; 
                 text-align: justify;
               }
-              table { border-collapse: collapse; }
-              td { border: 1px solid #000; padding: 5px; }
+              table { 
+                border-collapse: collapse; 
+                margin: 10px 0;
+              }
+              td { 
+                border: 1px solid #000; 
+                padding: 4px 6px;
+                font-size: 13px;
+              }
+              .signatures {
+                margin-top: 30px;
+              }
+              .signatures td {
+                border: none;
+                padding: 5px 10px;
+                vertical-align: top;
+              }
               @media print {
-                body { margin: 0; }
+                body { margin: 0; padding: 10px; }
               }
             </style>
           </head>
@@ -123,9 +142,9 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
     
     return `<div class="header">ДОГОВОР КУПЛИ-ПРОДАЖИ АВТОМОБИЛЯ № ____</div>
 
-<div style="text-align: right; margin-bottom: 20px;">г. Бишкек&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${currentDate}</div>
+<div style="text-align: right; margin-bottom: 15px;">г. Бишкек ${' '.repeat(50)} ${currentDate}</div>
 
-<p>&nbsp;&nbsp;&nbsp;&nbsp;ООО "AutoKorea", именуемое в дальнейшем <strong>"ПРОДАВЕЦ"</strong>, в лице директора, действующего на основании Устава, с одной стороны, и гражданин(ка) <strong>${buyerInfo.fullName || '_______________________'}</strong>, именуемый(ая) в дальнейшем <strong>"ПОКУПАТЕЛЬ"</strong>, с другой стороны, заключили настоящий договор о нижеследующем:</p>
+<p>ООО "AutoKorea", именуемое в дальнейшем <strong>"ПРОДАВЕЦ"</strong>, в лице директора, действующего на основании Устава, с одной стороны, и гражданин(ка) <strong>${buyerInfo.fullName || '_______________________'}</strong>, именуемый(ая) в дальнейшем <strong>"ПОКУПАТЕЛЬ"</strong>, с другой стороны, заключили настоящий договор о нижеследующем:</p>
 
 <h3>1. ПРЕДМЕТ ДОГОВОРА</h3>
 
@@ -206,15 +225,15 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
 
 <h3>6. РЕКВИЗИТЫ И ПОДПИСИ СТОРОН</h3>
 
-<table style="width: 100%; margin-top: 30px;">
+<table class="signatures" style="width: 100%; margin-top: 20px;">
   <tr>
-    <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+    <td style="width: 50%; vertical-align: top; padding-right: 15px;">
       <p><strong>ПРОДАВЕЦ:</strong><br>
       ООО "AutoKorea"<br>
       Адрес: г. Бишкек, __________________<br>
-      Тел.: _____________________________<br><br><br>
+      Тел.: _____________________________<br><br>
       _______________/__________/<br>
-      &nbsp;&nbsp;&nbsp;(подпись)&nbsp;&nbsp;&nbsp;(Ф.И.О.)<br><br>
+      (подпись) (Ф.И.О.)<br><br>
       М.П.</p>
     </td>
     <td style="width: 50%; vertical-align: top;">
@@ -226,17 +245,17 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
       Адрес: ${buyerInfo.address || '_________________'}<br>
       Тел.: ${buyerInfo.phone || '_________________'}<br><br>
       _______________/__________/<br>
-      &nbsp;&nbsp;&nbsp;(подпись)&nbsp;&nbsp;&nbsp;(Ф.И.О.)</p>
+      (подпись) (Ф.И.О.)</p>
     </td>
   </tr>
 </table>
 
-<div style="margin-top: 40px;">
+<div style="margin-top: 25px;">
   <p>Транспортное средство получил(а): _______________/__________/<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(подпись)&nbsp;&nbsp;&nbsp;(Ф.И.О.)</p>
+  (подпись) (Ф.И.О.)</p>
   
   <p>Денежные средства получил: _______________/__________/<br>
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(подпись)&nbsp;&nbsp;&nbsp;(Ф.И.О.)</p>
+  (подпись) (Ф.И.О.)</p>
 </div>`;
   };
 
