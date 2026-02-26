@@ -55,11 +55,12 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
 
   const generatePDF = async () => {
     try {
-      // Простая реализация без jsPDF - открываем в новом окне для печати в PDF
       const contractContent = generateContractContent();
-      const printWindow = window.open('', '_blank');
+      const contractDate = new Date().toLocaleDateString('ru-RU');
+      const fileName = `Договор_${car.brand}_${car.model}_${contractDate}.html`;
       
-      printWindow.document.write(`
+      // Создаем HTML контент
+      const htmlContent = `
         <html>
           <head>
             <title>Договор купли-продажи ${car.brand} ${car.model}</title>
@@ -84,28 +85,29 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
                 white-space: pre-wrap;
                 text-align: justify;
               }
-              .signature-section { 
-                margin-top: 40px; 
-                page-break-inside: avoid;
-              }
+              table { border-collapse: collapse; }
+              td { border: 1px solid #000; padding: 5px; }
               @media print {
                 body { margin: 0; }
-                .no-print { display: none; }
               }
             </style>
           </head>
           <body>
-            <div class="no-print" style="margin-bottom: 20px; text-align: center;">
-              <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px;">Печать в PDF</button>
-              <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; margin-left: 10px;">Закрыть</button>
-            </div>
             <div class="content">${contractContent}</div>
           </body>
         </html>
-      `);
-      
-      printWindow.document.close();
-      printWindow.focus();
+      `;
+
+      // Создаем Blob и скачиваем файл
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
       
       if (onGenerate) {
         onGenerate();
@@ -172,7 +174,7 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
 
 <h3>2. ЦЕНА ДОГОВОРА И ПОРЯДОК РАСЧЕТОВ</h3>
 
-<p><strong>2.1.</strong> Стоимость транспортного средства составляет <strong>${car.sellingPrice ? car.sellingPrice.toLocaleString() : '_______'} сом</strong> ${priceInWords ? `(${priceInWords} сом)` : '(_________________________________ сом)'}.</p>
+<p><strong>2.1.</strong> Стоимость транспортного средства составляет <strong>$${car.sellingPrice ? car.sellingPrice.toLocaleString() : '_______'}</strong> ${priceInWords ? `(${priceInWords} долларов США)` : '(_________________________________ долларов США)'}.</p>
 
 <p><strong>2.2.</strong> Расчеты производятся наличными денежными средствами в момент подписания настоящего договора и передачи транспортного средства.</p>
 
@@ -340,7 +342,7 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
                 <div>
                   <p className="text-default-500">Цена</p>
                   <p className="font-medium text-success text-lg">
-                    {car.sellingPrice ? `${car.sellingPrice.toLocaleString()} сом` : 'Не указана'}
+                    {car.sellingPrice ? `$${car.sellingPrice.toLocaleString()}` : 'Не указана'}
                   </p>
                 </div>
                 <div>
@@ -390,7 +392,7 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
                 
                 <div className="grid grid-cols-2 gap-2">
                   <Input
-                    label="Серия паспорта"
+                    label="№ Документа"
                     placeholder="ID"
                     value={buyerInfo.passportSeries}
                     onChange={(e) => handleInputChange('passportSeries', e.target.value)}
@@ -398,7 +400,7 @@ export default function ContractGenerator({ isOpen, onClose, car, onGenerate }) 
                     maxLength={2}
                   />
                   <Input
-                    label="Номер паспорта"
+                    label="Персональный номер"
                     placeholder="1234567"
                     value={buyerInfo.passportNumber}
                     onChange={(e) => handleInputChange('passportNumber', e.target.value)}
