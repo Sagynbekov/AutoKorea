@@ -27,6 +27,7 @@ import {
   DropdownItem,
   Avatar,
   Divider,
+  Spinner,
 } from '@heroui/react';
 import {
   CheckSquare,
@@ -42,90 +43,11 @@ import {
   Flag,
   Filter,
   Search,
+  X,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-// Моковые данные для задач
-const mockTasks = [
-  {
-    id: 1,
-    title: 'Помыть все автомобили на складе',
-    description: 'Необходимо провести мойку всех автомобилей в наличии перед выставлением на продажу',
-    priority: 'high',
-    status: 'pending',
-    assignedTo: null,
-    createdBy: 'Администратор',
-    createdAt: '2026-03-10T10:00:00Z',
-    deadline: '2026-03-12T18:00:00Z',
-    completedAt: null,
-    completedBy: null,
-  },
-  {
-    id: 2,
-    title: 'Подготовить Toyota Corolla 2019 к выдаче',
-    description: 'Клиент заберет автомобиль сегодня. Необходимо провести финальную подготовку: мойка, заправка, проверка документов.',
-    priority: 'urgent',
-    status: 'in_progress',
-    assignedTo: 'Петр Иванов',
-    createdBy: 'Администратор',
-    createdAt: '2026-03-11T08:30:00Z',
-    deadline: '2026-03-11T16:00:00Z',
-    completedAt: null,
-    completedBy: null,
-  },
-  {
-    id: 3,
-    title: 'Проверить документы на Hyundai Sonata',
-    description: 'Убедиться что все документы готовы для регистрации',
-    priority: 'medium',
-    status: 'completed',
-    assignedTo: 'Алексей Ким',
-    createdBy: 'Алексей Ким',
-    createdAt: '2026-03-10T14:00:00Z',
-    deadline: '2026-03-11T12:00:00Z',
-    completedAt: '2026-03-11T11:30:00Z',
-    completedBy: 'Алексей Ким',
-  },
-  {
-    id: 4,
-    title: 'Обновить прайс-лист на сайте',
-    description: 'Загрузить новые цены по прибывшим автомобилям',
-    priority: 'low',
-    status: 'pending_approval',
-    assignedTo: 'Мария Сидорова',
-    createdBy: 'Администратор',
-    createdAt: '2026-03-09T16:00:00Z',
-    deadline: '2026-03-12T10:00:00Z',
-    completedAt: '2026-03-11T09:00:00Z',
-    completedBy: 'Мария Сидорова',
-  },
-  {
-    id: 5,
-    title: 'Проверить техническое состояние Kia K5',
-    description: 'Провести диагностику двигателя и ходовой части после доставки',
-    priority: 'high',
-    status: 'pending',
-    assignedTo: null,
-    createdBy: 'Администратор',
-    createdAt: '2026-03-11T09:00:00Z',
-    deadline: '2026-03-13T17:00:00Z',
-    completedAt: null,
-    completedBy: null,
-  },
-  {
-    id: 6,
-    title: 'Подготовить отчет по продажам за февраль',
-    description: 'Сформировать детальный отчет с анализом продаж и прибыли за предыдущий месяц',
-    priority: 'medium',
-    status: 'in_progress',
-    assignedTo: 'Анна Петрова',
-    createdBy: 'Администратор',
-    createdAt: '2026-03-08T14:00:00Z',
-    deadline: '2026-03-15T12:00:00Z',
-    completedAt: null,
-    completedBy: null,
-  },
-];
+import { useTasks, useTaskOperations } from '../hooks/useTasks';
 
 // Статусы задач
 const taskStatuses = {
@@ -145,11 +67,22 @@ const taskPriorities = {
 
 export default function Tasks() {
   const { isAdmin, user } = useAuth();
-  const [tasks, setTasks] = useState(mockTasks);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
+  
+  // Хуки для работы с данными
+  const { tasks, loading, error, refetch } = useTasks();
+  const { 
+    createTask, 
+    takeTask, 
+    completeTask, 
+    approveTask, 
+    rejectTask, 
+    deleteTask,
+    loading: operationLoading 
+  } = useTaskOperations();
   
   const { isOpen: isCreateOpen, onOpen: onCreateOpen, onClose: onCreateClose } = useDisclosure();
   const { isOpen: isDetailsOpen, onOpen: onDetailsOpen, onClose: onDetailsClose } = useDisclosure();
@@ -189,56 +122,77 @@ export default function Tasks() {
   }, [tasks, filterStatus, filterPriority, searchQuery]);
 
   // Создание новой задачи (только для админов)
-  const handleCreateTask = () => {
-    const task = {
-      id: tasks.length + 1,
-      title: newTask.title,
-      description: newTask.description,
-      priority: newTask.priority,
-      status: 'pending',
-      assignedTo: null,
-      createdBy: user.name,
-      createdAt: new Date().toISOString(),
-      deadline: newTask.deadline ? new Date(newTask.deadline).toISOString() : null,
-      completedAt: null,
-      completedBy: null,
-    };
-
-    setTasks([task, ...tasks]);
-    setNewTask({ title: '', description: '', priority: 'medium', deadline: '' });
-    onCreateClose();
+  const handleCreateTask = async () => {
+    if (!newTask.title.trim()) return;
+    
+    try {
+      await createTask({
+        title: newTask.title,
+        description: newTask.description,
+        priority: newTask.priority,
+        deadline: newTask.deadline || null,
+        createdBy: user.name,
+      });
+      
+      setNewTask({ title: '', description: '', priority: 'medium', deadline: '' });
+      onCreateClose();
+      refetch(); // Обновляем список задач
+    } catch (error) {
+      console.error('Error creating task:', error);
+      // Здесь можно добавить уведомление об ошибке
+    }
   };
 
   // Взять задачу в работу
-  const handleTakeTask = (taskId) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, status: 'in_progress', assignedTo: user.name }
-        : task
-    ));
+  const handleTakeTask = async (taskId) => {
+    try {
+      await takeTask(taskId, user.name);
+      refetch();
+    } catch (error) {
+      console.error('Error taking task:', error);
+    }
   };
 
   // Завершить задачу
-  const handleCompleteTask = (taskId) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { 
-            ...task, 
-            status: 'pending_approval', 
-            completedAt: new Date().toISOString(),
-            completedBy: user.name 
-          }
-        : task
-    ));
+  const handleCompleteTask = async (taskId) => {
+    try {
+      await completeTask(taskId, user.name);
+      refetch();
+    } catch (error) {
+      console.error('Error completing task:', error);
+    }
   };
 
   // Подтвердить выполнение (только для админов)
-  const handleApproveTask = (taskId) => {
-    setTasks(tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, status: 'completed' }
-        : task
-    ));
+  const handleApproveTask = async (taskId) => {
+    try {
+      await approveTask(taskId);
+      refetch();
+    } catch (error) {
+      console.error('Error approving task:', error);
+    }
+  };
+
+  // Отклонить выполнение (только для админов)
+  const handleRejectTask = async (taskId, reason = 'Требуется доработка') => {
+    try {
+      await rejectTask(taskId, reason);
+      refetch();
+    } catch (error) {
+      console.error('Error rejecting task:', error);
+    }
+  };
+
+  // Удалить задачу (только для админов)
+  const handleDeleteTask = async (taskId) => {
+    if (!window.confirm('Вы уверены, что хотите удалить эту задачу?')) return;
+    
+    try {
+      await deleteTask(taskId);
+      refetch();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
   };
 
   // Форматирование даты
@@ -264,6 +218,36 @@ export default function Tasks() {
     onDetailsOpen();
   };
 
+  // Показать загрузку если данные загружаются
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Spinner size="lg" color="primary" />
+      </div>
+    );
+  }
+
+  // Показать ошибку если что-то пошло не так
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+        <AlertCircle className="w-12 h-12 text-danger" />
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-danger">Ошибка загрузки</h3>
+          <p className="text-default-500">{error.message}</p>
+          <Button 
+            color="primary" 
+            startContent={<RefreshCw className="w-4 h-4" />}
+            onPress={refetch}
+            className="mt-4"
+          >
+            Попробовать снова
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Заголовок и основные действия */}
@@ -273,15 +257,27 @@ export default function Tasks() {
           <p className="text-default-500 mt-1">Координация работы между сотрудниками</p>
         </div>
         
-        {isAdmin && (
+        <div className="flex gap-2">
           <Button
-            color="primary"
-            startContent={<Plus className="w-4 h-4" />}
-            onPress={onCreateOpen}
+            variant="light"
+            startContent={<RefreshCw className="w-4 h-4" />}
+            onPress={refetch}
+            isLoading={loading}
           >
-            Создать задачу
+            Обновить
           </Button>
-        )}
+          
+          {isAdmin && (
+            <Button
+              color="primary"
+              startContent={<Plus className="w-4 h-4" />}
+              onPress={onCreateOpen}
+              isLoading={operationLoading}
+            >
+              Создать задачу
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Статистика */}
@@ -386,15 +382,43 @@ export default function Tasks() {
 
       {/* Список задач */}
       <Card>
-        <Table aria-label="Таблица задач">
-          <TableHeader>
-            <TableColumn>ЗАДАЧА</TableColumn>
-            <TableColumn>ПРИОРИТЕТ</TableColumn>
-            <TableColumn>СТАТУС</TableColumn>
-            <TableColumn>ИСПОЛНИТЕЛЬ</TableColumn>
-            <TableColumn>ДЕДЛАЙН</TableColumn>
-            <TableColumn>ДЕЙСТВИЯ</TableColumn>
-          </TableHeader>
+        {filteredTasks.length === 0 ? (
+          <CardBody className="text-center py-12">
+            <CheckSquare className="w-16 h-16 text-default-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-default-600 mb-2">
+              {searchQuery || filterStatus !== 'all' || filterPriority !== 'all' 
+                ? 'Задачи не найдены' 
+                : 'Задач пока нет'
+              }
+            </h3>
+            <p className="text-default-400 mb-4">
+              {searchQuery || filterStatus !== 'all' || filterPriority !== 'all'
+                ? 'Попробуйте изменить фильтры поиска'
+                : isAdmin 
+                  ? 'Создайте первую задачу для команды'
+                  : 'Пока что новых задач нет'
+              }
+            </p>
+            {isAdmin && !searchQuery && filterStatus === 'all' && filterPriority === 'all' && (
+              <Button
+                color="primary"
+                startContent={<Plus className="w-4 h-4" />}
+                onPress={onCreateOpen}
+              >
+                Создать первую задачу
+              </Button>
+            )}
+          </CardBody>
+        ) : (
+          <Table aria-label="Таблица задач">
+            <TableHeader>
+              <TableColumn>ЗАДАЧА</TableColumn>
+              <TableColumn>ПРИОРИТЕТ</TableColumn>
+              <TableColumn>СТАТУС</TableColumn>
+              <TableColumn>ИСПОЛНИТЕЛЬ</TableColumn>
+              <TableColumn>ДЕДЛАЙН</TableColumn>
+              <TableColumn>ДЕЙСТВИЯ</TableColumn>
+            </TableHeader>
           <TableBody>
             {filteredTasks.map((task) => {
               const status = taskStatuses[task.status];
@@ -506,6 +530,18 @@ export default function Tasks() {
                           </DropdownItem>
                         )}
                         
+                        {/* Отклонить выполнение (для админов) */}
+                        {isAdmin && task.status === 'pending_approval' && (
+                          <DropdownItem
+                            key="reject"
+                            startContent={<X className="w-4 h-4" />}
+                            onPress={() => handleRejectTask(task.id)}
+                            color="warning"
+                          >
+                            Отклонить
+                          </DropdownItem>
+                        )}
+                        
                         <DropdownItem
                           key="details"
                           startContent={<User className="w-4 h-4" />}
@@ -513,6 +549,18 @@ export default function Tasks() {
                         >
                           Подробности
                         </DropdownItem>
+                        
+                        {/* Удалить задачу (только для админов) */}
+                        {isAdmin && (
+                          <DropdownItem
+                            key="delete"
+                            startContent={<X className="w-4 h-4" />}
+                            onPress={() => handleDeleteTask(task.id)}
+                            color="danger"
+                          >
+                            Удалить
+                          </DropdownItem>
+                        )}
                       </DropdownMenu>
                     </Dropdown>
                   </TableCell>
@@ -520,7 +568,8 @@ export default function Tasks() {
               );
             })}
           </TableBody>
-        </Table>
+          </Table>
+        )}
       </Card>
 
       {/* Модальное окно создания задачи */}
@@ -565,13 +614,14 @@ export default function Tasks() {
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="light" onPress={onCreateClose}>
+            <Button variant="light" onPress={onCreateClose} isDisabled={operationLoading}>
               Отмена
             </Button>
             <Button 
               color="primary" 
               onPress={handleCreateTask}
-              isDisabled={!newTask.title.trim()}
+              isDisabled={!newTask.title.trim() || operationLoading}
+              isLoading={operationLoading}
             >
               Создать задачу
             </Button>
