@@ -250,7 +250,6 @@ export default function Tasks() {
 
   return (
     <div className="space-y-6">
-      {/* Заголовок и основные действия */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Управление задачами</h1>
@@ -309,7 +308,7 @@ export default function Tasks() {
         </Card>
       )}
 
-      {/* Статистика */}}
+      {/* Статистика */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardBody className="p-4">
