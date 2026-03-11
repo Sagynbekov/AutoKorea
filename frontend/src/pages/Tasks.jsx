@@ -681,8 +681,14 @@ export default function Tasks() {
               <Input
                 type="datetime-local"
                 label="Дедлайн"
+                placeholder="Выберите дату и время"
                 value={newTask.deadline}
                 onValueChange={(value) => setNewTask({...newTask, deadline: value})}
+                description="Необязательно - оставьте пустым если дедлайн не требуется"
+                classNames={{
+                  input: "text-small",
+                  inputWrapper: "h-unit-12"
+                }}
               />
             </div>
           </ModalBody>
