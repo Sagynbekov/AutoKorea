@@ -280,7 +280,36 @@ export default function Tasks() {
         </div>
       </div>
 
-      {/* Статистика */}
+      {/* Особое уведомление для админов о задачах на подтверждении */}
+      {isAdmin && tasks.filter(t => t.status === 'pending_approval').length > 0 && (
+        <Card className="border-warning-200 bg-warning-50">
+          <CardBody className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-warning/20">
+                <AlertCircle className="w-5 h-5 text-warning" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-warning-600">
+                  Задачи ожидают вашего подтверждения
+                </h3>
+                <p className="text-sm text-warning-500">
+                  {tasks.filter(t => t.status === 'pending_approval').length} задач(и) выполнены и ждут проверки
+                </p>
+              </div>
+              <Button
+                size="sm"
+                color="warning"
+                variant="flat"
+                onPress={() => setFilterStatus('pending_approval')}
+              >
+                Посмотреть
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Статистика */}}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardBody className="p-4">
@@ -290,7 +319,14 @@ export default function Tasks() {
               </div>
               <div>
                 <p className="text-sm text-default-500">Ожидают</p>
-                <p className="text-xl font-semibold">{tasks.filter(t => t.status === 'pending').length}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-semibold">{tasks.filter(t => t.status === 'pending_approval').length}</p>
+                  {tasks.filter(t => t.status === 'pending_approval').length > 0 && isAdmin && (
+                    <Chip color="warning" size="sm" variant="flat">
+                      Требует внимания
+                    </Chip>
+                  )}
+                </div>
               </div>
             </div>
           </CardBody>
@@ -318,7 +354,14 @@ export default function Tasks() {
               </div>
               <div>
                 <p className="text-sm text-default-500">На проверке</p>
-                <p className="text-xl font-semibold">{tasks.filter(t => t.status === 'pending_approval').length}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-semibold">{tasks.filter(t => t.status === 'pending_approval').length}</p>
+                  {tasks.filter(t => t.status === 'pending_approval').length > 0 && isAdmin && (
+                    <Chip color="warning" size="sm" variant="flat">
+                      Требует внимания
+                    </Chip>
+                  )}
+                </div>
               </div>
             </div>
           </CardBody>
@@ -458,8 +501,12 @@ export default function Tasks() {
                       size="sm"
                       variant="flat"
                       startContent={<StatusIcon className="w-3 h-3" />}
+                      className={task.status === 'pending_approval' && isAdmin ? 'animate-pulse' : ''}
                     >
                       {status.label}
+                      {task.status === 'pending_approval' && isAdmin && (
+                        <span className="ml-1">⚠️</span>
+                      )}
                     </Chip>
                   </TableCell>
                   <TableCell>
@@ -485,16 +532,44 @@ export default function Tasks() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Dropdown>
-                      <DropdownTrigger>
-                        <Button
-                          isIconOnly
-                          size="sm"
-                          variant="light"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownTrigger>
+                    <div className="flex items-center gap-2">
+                      {/* Специальные кнопки для задач на подтверждении (только для админов) */}
+                      {isAdmin && task.status === 'pending_approval' && (
+                        <>
+                          <Button
+                            size="sm"
+                            color="success"
+                            variant="flat"
+                            startContent={<CheckCircle className="w-3 h-3" />}
+                            onPress={() => handleApproveTask(task.id)}
+                            isLoading={operationLoading}
+                          >
+                            Подтвердить
+                          </Button>
+                          <Button
+                            size="sm"
+                            color="warning"
+                            variant="flat"
+                            startContent={<X className="w-3 h-3" />}
+                            onPress={() => handleRejectTask(task.id)}
+                            isLoading={operationLoading}
+                          >
+                            Отклонить
+                          </Button>
+                        </>
+                      )}
+                      
+                      {/* Обычные действия в dropdown */}
+                      <Dropdown>
+                        <DropdownTrigger>
+                          <Button
+                            isIconOnly
+                            size="sm"
+                            variant="light"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownTrigger>
                       <DropdownMenu>
                         {/* Взять в работу (для сотрудников) */}
                         {!isAdmin && task.status === 'pending' && (
@@ -518,28 +593,26 @@ export default function Tasks() {
                           </DropdownItem>
                         )}
                         
-                        {/* Подтвердить выполнение (для админов) */}
+                        {/* Подтвердить выполнение (для админов) - в dropdown только если кнопки не показаны */}
                         {isAdmin && task.status === 'pending_approval' && (
-                          <DropdownItem
-                            key="approve"
-                            startContent={<CheckCircle className="w-4 h-4" />}
-                            onPress={() => handleApproveTask(task.id)}
-                            color="success"
-                          >
-                            Подтвердить выполнение
-                          </DropdownItem>
-                        )}
-                        
-                        {/* Отклонить выполнение (для админов) */}
-                        {isAdmin && task.status === 'pending_approval' && (
-                          <DropdownItem
-                            key="reject"
-                            startContent={<X className="w-4 h-4" />}
-                            onPress={() => handleRejectTask(task.id)}
-                            color="warning"
-                          >
-                            Отклонить
-                          </DropdownItem>
+                          <>
+                            <DropdownItem
+                              key="approve"
+                              startContent={<CheckCircle className="w-4 h-4" />}
+                              onPress={() => handleApproveTask(task.id)}
+                              color="success"
+                            >
+                              Подтвердить выполнение
+                            </DropdownItem>
+                            <DropdownItem
+                              key="reject"
+                              startContent={<X className="w-4 h-4" />}
+                              onPress={() => handleRejectTask(task.id)}
+                              color="warning"
+                            >
+                              Отклонить
+                            </DropdownItem>
+                          </>
                         )}
                         
                         <DropdownItem
@@ -562,7 +635,8 @@ export default function Tasks() {
                           </DropdownItem>
                         )}
                       </DropdownMenu>
-                    </Dropdown>
+                      </Dropdown>
+                    </div>
                   </TableCell>
                 </TableRow>
               );
