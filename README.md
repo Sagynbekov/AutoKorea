@@ -147,6 +147,9 @@ const firebaseConfig = {
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
+###Live Website
+[https://vibecodingchat-1.onrender.com](https://autokorea.onrender.com)
+
 
 ## 👥 Authors
 
@@ -155,12 +158,12 @@ Adilet Sagynbekov
 ---
 
 **Note**: Make sure to configure your Firebase credentials properly before running the application. Never commit sensitive credentials to version control.
-```bash
+
 ## 🔒 Security Notes
 
 - Never commit your Firebase configuration with sensitive credentials to version control
 - Set up proper Firestore security rules to protect your data
 - Use environment variables for sensitive configuration in production
-```
+
 
 The production-ready files will be in the `dist` directory. Deploy to your preferred hosting service (Firebase Hosting, Vercel, Netlify, etc.).
