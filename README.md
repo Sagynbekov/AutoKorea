@@ -88,7 +88,7 @@ Update `src/config/firebase.js` with your Firebase configuration
 
 ### Running the Application
 
-```bash
+
 # Start the development server
 1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
 2. Enable Authentication (Email/Password)
@@ -147,7 +147,7 @@ const firebaseConfig = {
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-###Live Website
+## Live Website
 [https://vibecodingchat-1.onrender.com](https://autokorea.onrender.com)
 
 
